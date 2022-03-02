@@ -1,9 +1,10 @@
 from dataclasses import dataclass
+from inspect import Attribute
 from sqlalchemy import Column, ForeignKey, Integer, String, Text
-from app.configs.database import db
 from sqlalchemy.orm import validates
-from app.models.task_categories_model import task_categories
-from app.exceptions.exc import InvalidDataError
+from werkzeug.security import check_password_hash, generate_password_hash
+from uuid import uuid4
+from sqlalchemy.dialects.postgresql import UUID
 
 
 @dataclass
@@ -13,9 +14,23 @@ class Categories(db.Model):
     cnpj: String
     email: String
     andress: String
-    password: String
 
-    __tablename__ = 'company'
-    id = Column(Integer, primary_key=True)
+    __tablename__ = "company"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     name = Column(String(100), nullable=False, unique=True)
-    description = Column(Text)
+    cnpj = Column(String)
+    andress = Column(Text)
+    email = Column(String, nullable=False, unique=True)
+    password = Column(String())
+
+    @property
+    def password(self):
+        raise AttributeError("Passwrod is not acessible")
+
+    @password.setter
+    def password(self, password_hash):
+        self.password_hash = generate_password_hash(password_hash)
+
+
+    def check_password(self, check_compare):
+        return check_password_hash(self.password_hash, check_compare)
