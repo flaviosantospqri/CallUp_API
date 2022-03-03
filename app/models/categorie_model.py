@@ -10,4 +10,4 @@ class CategoriesModel(db.Model):
     __tablename__ = "categories"
 
     id: Column(Integer, primary_key=True)
-    name: Column(String(50), nullable=False, unique=True)
+    name: Column(String(80), nullable=False, unique=True)
