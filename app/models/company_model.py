@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from inspect import Attribute
 from sqlalchemy import Column, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import validates
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -13,19 +12,19 @@ class Categories(db.Model):
     name: String
     cnpj: String
     email: String
-    andress: String
+    address: String
 
-    __tablename__ = "company"
+    __tablename__ = "companies"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     name = Column(String(100), nullable=False, unique=True)
-    cnpj = Column(String)
-    andress = Column(Text)
+    cnpj = Column(String, nullable=False )
+    address = Column(Text, nullable=False)
     email = Column(String, nullable=False, unique=True)
-    password = Column(String())
+    password_hash = Column(String())
 
     @property
     def password(self):
-        raise AttributeError("Passwrod is not acessible")
+        raise AttributeError("Password is not acessible")
 
     @password.setter
     def password(self, password_hash):
