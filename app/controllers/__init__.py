@@ -1,5 +1,8 @@
 from app.configs.database import db
 from sqlalchemy.orm.session import Session
+from app.models.category_model import Category
+from app.models.subcategories_model import Subcategories
+from app.models.sector_model import Sector
 
 session: Session = db.session
 
@@ -22,13 +25,13 @@ def Gener_data_sector():
 
 def Gener_data_categories():
 
-    system_analysis = {"name": "system_analysis"}
-    networks = {"name": "networks"}
-    development = {"name": "development"}
-    hardware = {"name": "hardware"}
-    peripherals = {"name": "peripherals"}
-    support = {"name": "support"}
-    gorvenance_system = {"name": "gorvenance_system"}
+    system_analysis = {"name": "System Analysis"}
+    networks = {"name": "Networks"}
+    development = {"name": "Development"}
+    hardware = {"name": "Hardware"}
+    peripherals = {"name": "Peripherals"}
+    support = {"name": "Support"}
+    gorvenance_system = {"name": "Gorvenance System"}
 
     data = [
         system_analysis,
@@ -49,7 +52,7 @@ def Gener_data_categories():
 def Gener_data_subcategories():
     try:
         system_analysis = (
-            session.query(Category).filter_by(name="system_analysis").first()
+            session.query(Category).filter_by(name="System Analysis").first()
         )
         performance_analysis = {
             "category_id": system_analysis.id,
@@ -61,7 +64,7 @@ def Gener_data_subcategories():
         }
         error_analysis = {"category_id": system_analysis.id, "name": "Error Analysis"}
 
-        networks = session.query(Category).filter_by(name="networks").first()
+        networks = session.query(Category).filter_by(name="Networks").first()
         connection_failures = {
             "category_id": networks.id,
             "name": "Connection Failures",
@@ -77,7 +80,7 @@ def Gener_data_subcategories():
         review_network = {"category_id": networks.id, "name": "Review Network"}
         review_packet_loss = {"category_id": networks.id, "name": " Review Packet Loss"}
 
-        development = session.query(Category).filter_by(name="development").first()
+        development = session.query(Category).filter_by(name="Development").first()
         development_site = {"category_id": development.id, "name": "Development Site"}
         development_software = {
             "category_id": development.id,
@@ -89,13 +92,13 @@ def Gener_data_subcategories():
             "name": "Development Digital Marketing",
         }
 
-        hardware = session.query(Category).filter_by(name="hardware").first()
+        hardware = session.query(Category).filter_by(name="Hardware").first()
         mounting = {"category_id": hardware.id, "name": "Mounting"}
         maintenance = {"category_id": hardware.id, "name": "Maintenance"}
         repair = {"category_id": hardware.id, "name": "Repair"}
         acquisition = {"category_id": hardware.id, "name": "Acquisition"}
 
-        peripherals = session.query(Category).filter_by(name="peripherals").first()
+        peripherals = session.query(Category).filter_by(name="Peripherals").first()
         keyboard = {"category_id": peripherals.id, "name": "Keyboard"}
         mouse = {"category_id": peripherals.id, "name": "Mouse"}
         monitor = {"category_id": peripherals.id, "name": "Monitor"}
@@ -103,12 +106,12 @@ def Gener_data_subcategories():
         sound_box = {"category_id": peripherals.id, "name": "Sound Box"}
         others = {"category_id": peripherals.id, "name": "Others"}
 
-        support = session.query(Category).filter_by(name="support").first()
+        support = session.query(Category).filter_by(name="Support").first()
         call = {"category_id": support.id, "name": "Call"}
         chat = {"category_id": support.id, "name": "Chat"}
 
         gorvenance_system = (
-            session.query(Category).filter_by(name="gorvenance_system").first()
+            session.query(Category).filter_by(name="Gorvenance_system").first()
         )
         network_data_management = {
             "category_id": gorvenance_system.id,
