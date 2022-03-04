@@ -1,4 +1,3 @@
-from typing import Collection
 from sqlalchemy import Column, Integer, String, ForeignKey
 from werkzeug.security import check_password_hash, generate_password_hash
 from app.configs.database import db
