@@ -1,6 +1,9 @@
 from dataclasses import dataclass
 
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import Column, Integer, ForeignKey
+
+from uuid import uuid4
 
 from app.configs.database import db
 
@@ -9,11 +12,11 @@ from app.configs.database import db
 class Provider_customer(db.Model):
     id: int
     provider_id: int
-    customer_id: int
+    employee_id: int
 
-    __tablename__ = "provider_customer"
+    __tablename__ = "providers_customers"
 
 
-    id = Column(Integer, primary_key=True)
-    provider_id = Column(Integer, ForeignKey('provider.id'), nullable=False)
-    customer_id = Column(Integer, ForeignKey('customer.id'), nullable=False)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    provider_id = Column(Integer, ForeignKey('providers.id'), nullable=False)
+    employee_id = Column(Integer, ForeignKey('employees.id'), nullable=False)
