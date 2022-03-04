@@ -3,9 +3,11 @@ from sqlalchemy import Column, Integer, String, ForeignKey
 from werkzeug.security import check_password_hash, generate_password_hash
 from app.configs.database import db
 from dataclasses import dataclass
+from sqlalchemy.dialects.postgresql import UUID
+from uuid import uuid4
 
 @dataclass
-class CategoriesModel(db.Model):
+class Employees(db.Model):
     id: int
     name: str
     company_id: int
@@ -13,9 +15,9 @@ class CategoriesModel(db.Model):
     phone: str
     email: str
 
-    __tablename__ = "company_employees"
+    __tablename__ = "employees"
 
-    id: Column(Integer, primary_key=True)
+    id: Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     name: Column(String(80), nullable=False, unique=True)
     company_id: Column(Integer, ForeignKey('companies.id'), nullable=False)
     sector_id: Column(Integer, ForeignKey('sectors.id'), nullable=False)
