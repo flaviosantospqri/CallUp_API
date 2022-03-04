@@ -7,6 +7,6 @@ def get_all_sectors():
     sectors = Sector.query.all()
 
     if not sectors.items():
-        return {"error": "no data found"}, HTTPStatus.OK
+        return {"error": "no data found"}, HTTPStatus.NOT_FOUND
 
     return jsonify(sectors), HTTPStatus.OK
