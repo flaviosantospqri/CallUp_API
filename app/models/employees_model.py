@@ -16,13 +16,13 @@ class Employees(db.Model):
 
     __tablename__ = "employees"
 
-    id: Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    name: Column(String(80), nullable=False, unique=True)
-    company_id: Column(Integer, ForeignKey('companies.id'), nullable=False)
-    sector_id: Column(Integer, ForeignKey('sectors.id'), nullable=False)
-    phone: Column(String(255))
-    email: Column(String(255), unique=True, nullable=False)
-    password_hash: Column(String)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    name = Column(String(80), nullable=False, unique=True)
+    company_id = Column(Integer, ForeignKey('companies.id'), nullable=False)
+    sector_id = Column(Integer, ForeignKey('sectors.id'), nullable=False)
+    phone = Column(String(255))
+    email = Column(String(255), unique=True, nullable=False)
+    password_hash = Column(String)
 
     @property
     def password(self):
