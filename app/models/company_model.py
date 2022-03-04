@@ -7,7 +7,7 @@ from sqlalchemy.dialects.postgresql import UUID
 
 
 @dataclass
-class Categories(db.Model):
+class Company(db.Model):
     id: Integer
     name: String
     cnpj: String
