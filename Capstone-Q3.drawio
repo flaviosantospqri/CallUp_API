@@ -1,6 +1,6 @@
-<mxfile host="app.diagrams.net" modified="2022-03-04T01:41:28.952Z" agent="5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36" etag="1lXfdqc9BCiXoRWYjlQ8" version="16.6.5" type="github" pages="2">
+<mxfile host="app.diagrams.net" modified="2022-03-04T15:35:36.117Z" agent="5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36" etag="hnL2J-_U4rDWou5Eh4Y5" version="16.6.6" type="github" pages="2">
   <diagram id="zNsBITmMBMSeONoxPtWH" name="BD Diagram ">
-    <mxGraphModel dx="1360" dy="802" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="1600" math="0" shadow="0">
+    <mxGraphModel dx="1364" dy="805" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="1600" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -620,7 +620,7 @@
             <mxPoint x="860" y="400" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="6PibULIUZILR9eJhh2p1-101" value="sectores" style="shape=table;startSize=30;container=1;collapsible=1;childLayout=tableLayout;fixedRows=1;rowLines=0;fontStyle=1;align=center;resizeLast=1;" parent="1" vertex="1">
+        <mxCell id="6PibULIUZILR9eJhh2p1-101" value="sectors" style="shape=table;startSize=30;container=1;collapsible=1;childLayout=tableLayout;fixedRows=1;rowLines=0;fontStyle=1;align=center;resizeLast=1;" parent="1" vertex="1">
           <mxGeometry x="360" y="740" width="196" height="90" as="geometry" />
         </mxCell>
         <mxCell id="6PibULIUZILR9eJhh2p1-102" value="" style="shape=tableRow;horizontal=0;startSize=0;swimlaneHead=0;swimlaneBody=0;fillColor=none;collapsible=0;dropTarget=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;top=0;left=0;right=0;bottom=1;" parent="6PibULIUZILR9eJhh2p1-101" vertex="1">
