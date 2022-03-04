@@ -7,6 +7,6 @@ def get_all_subcategories():
     subcategories = SubCategory.query.all()
 
     if not subcategories.items():
-        return {"error": "no data found"}, HTTPStatus.OK
+        return {"error": "no data found"}, HTTPStatus.NOT_FOUND
     
     return jsonify(subcategories), HTTPStatus.OK
