@@ -1,9 +1,11 @@
 from dataclasses import dataclass
-from sqlalchemy import Column, ForeignKey, Integer, String, Text
-from sqlalchemy.orm import validates
+from sqlalchemy import Column, Integer, String, Text
+from sqlalchemy.orm import validates, relationship, backref
 from werkzeug.security import check_password_hash, generate_password_hash
 from uuid import uuid4
 from sqlalchemy.dialects.postgresql import UUID
+
+from app.configs.database import db
 
 
 @dataclass
@@ -21,6 +23,8 @@ class Company(db.Model):
     address = Column(Text, nullable=False)
     email = Column(String, nullable=False, unique=True)
     password_hash = Column(String())
+
+    employees = relationship("Employee", backref=backref('company', uselist=False))
 
     @property
     def password(self):

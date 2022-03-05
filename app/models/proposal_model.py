@@ -17,5 +17,5 @@ class Proposal(db.Model):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     price = Column(Float(2), nullable=False)
     description = Column(String(255), nullable=False)
-    call_id = Column(Integer, ForeignKey('calls.id'))
-    provider_id = Column(Integer, ForeignKey('providers.id'))
+    call_id = Column(UUID(as_uuid=True), ForeignKey('calls.id'), nullable=False)
+    provider_id = Column(UUID(as_uuid=True), ForeignKey('providers.id'), nullable=False)
