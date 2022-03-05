@@ -9,7 +9,7 @@ from app.configs.database import db
 
 
 @dataclass
-class Provider_customer(db.Model):
+class ProviderEmployee(db.Model):
     id: int
     provider_id: int
     employee_id: int
@@ -18,5 +18,5 @@ class Provider_customer(db.Model):
 
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    provider_id = Column(Integer, ForeignKey('providers.id'), nullable=False)
-    employee_id = Column(Integer, ForeignKey('employees.id'), nullable=False)
+    provider_id = Column(UUID(as_uuid=True), ForeignKey('providers.id'), nullable=False)
+    employee_id = Column(UUID(as_uuid=True), ForeignKey('employees.id'), nullable=False)

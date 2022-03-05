@@ -12,11 +12,13 @@ def init_app(app: Flask):
     app.db = db
 
     from app.models import (
-        Provider,
-        SubCategory,
         Category,
+        SubCategory,
+        Company,
+        Sector,
+        Employee,
         Call,
-        Proposal,
+        Provider,
         ProviderEmployee,
-        Sector
+        Proposal
     )

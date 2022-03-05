@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy.orm import relationship, backref
 from werkzeug.security import check_password_hash, generate_password_hash
 from app.configs.database import db
 from dataclasses import dataclass
@@ -6,7 +7,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from uuid import uuid4
 
 @dataclass
-class Employees(db.Model):
+class Employee(db.Model):
     id: int
     name: str
     company_id: int
@@ -18,11 +19,14 @@ class Employees(db.Model):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     name = Column(String(80), nullable=False, unique=True)
-    company_id = Column(Integer, ForeignKey('companies.id'), nullable=False)
-    sector_id = Column(Integer, ForeignKey('sectors.id'), nullable=False)
+    company_id = Column(UUID(as_uuid=True), ForeignKey('companies.id'), nullable=False)
+    sector_id = Column(UUID(as_uuid=True), ForeignKey('sectors.id'), nullable=False)
     phone = Column(String(255))
     email = Column(String(255), unique=True, nullable=False)
     password_hash = Column(String)
+
+    calls = relationship("Call", backref=backref('employee', uselist=False))
+    providers = relationship("Provider", secondary='providers_customers', backref='clients')
 
     @property
     def password(self):
