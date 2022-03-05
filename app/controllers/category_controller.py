@@ -7,7 +7,7 @@ def get_categories():
 
     categories = Category.query.all()
 
-    if not categories.items:
+    if not categories:
         return {"error": "no data found"}
 
     return jsonify(categories.items), HTTPStatus.OK

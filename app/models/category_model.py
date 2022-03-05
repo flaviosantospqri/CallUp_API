@@ -17,4 +17,4 @@ class Category(db.Model):
     name = Column(String(80), nullable=False, unique=True)
 
     subcategories = relationship("SubCategory", backref=backref('category', uselist=False))
-    calls = relationship("Call", backref=backref('category', uselist=False))
+    calls = relationship("Call", backref=backref('category', uselist=False), foreign_keys='Call.category_id')
