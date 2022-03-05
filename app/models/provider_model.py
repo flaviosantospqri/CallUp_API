@@ -1,6 +1,7 @@
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy import Column, String, Integer
+from sqlalchemy import Column, String
+from sqlalchemy.orm import relationship, backref
 from app.configs.database import db
 from dataclasses import dataclass
 from uuid import uuid4
@@ -13,7 +14,6 @@ class Provider(db.Model):
     cnpj: str
     about: str
     email: str
-    password_hash: str
 
     __tablename__ = "providers"
 
@@ -23,6 +23,8 @@ class Provider(db.Model):
     email = Column(String(255), nullable=False, unique=True)
     about = Column(String(255))
     password_hash = Column(String(511), nullable=False)
+
+    proposals = relationship("Proposal", backref=backref('provider', uselist=False))
 
     @property
     def password(self):
