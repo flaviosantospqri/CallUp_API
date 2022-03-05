@@ -24,5 +24,6 @@ class Call(db.Model):
     employee_id = Column(UUID(as_uuid=True), ForeignKey('employees.id'), nullable=False)
     selected_proposal = Column(UUID(as_uuid=True), ForeignKey('proposals.id'), nullable=False)
 
-    proposals = relationship("Proposal", backref=backref('call', uselist=False))
-    providers = relationship("Provider", secondary='proposals', backref='calls')
+    proposals = relationship("Proposal", backref=backref('call', uselist=False), foreign_keys='Proposal.call_id')
+    
+  
