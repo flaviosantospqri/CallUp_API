@@ -1,7 +1,7 @@
 from app.configs.database import db
 from sqlalchemy.orm.session import Session
 from app.models.category_model import Category
-from app.models.subcategories_model import Subcategories
+from app.models.subcategory_model import SubCategory
 from app.models.sector_model import Sector
 
 session: Session = db.session
@@ -154,7 +154,7 @@ def Gener_data_subcategories():
         ]
 
         for element in data:
-            value_element = Subcategories(**element)
+            value_element = SubCategory(**element)
             session.add(value_element)
             session.commit()
     except:
