@@ -4,7 +4,8 @@ from sqlalchemy import Column, String
 from sqlalchemy.orm import relationship, backref
 from app.configs.database import db
 from dataclasses import dataclass
-from  uuid import uuid4
+from uuid import uuid4
+
 
 @dataclass
 class Provider(db.Model):
@@ -14,7 +15,7 @@ class Provider(db.Model):
     about: str
     email: str
 
-    __tablename__ = 'providers'
+    __tablename__ = "providers"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     name = Column(String(127), nullable=False)
@@ -28,10 +29,10 @@ class Provider(db.Model):
     @property
     def password(self):
         raise AttributeError("Error password")
-    
+
     @password.setter
     def password(self, password_to_hash):
         self.password_hash = generate_password_hash(password_to_hash)
-    
+
     def password_check(self, password_to_compare):
         return check_password_hash(self.password_hash, password_to_compare)
