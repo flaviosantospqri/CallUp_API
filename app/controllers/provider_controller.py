@@ -21,3 +21,4 @@ def get_provider_by_cnpj(provider_cnpj):
 
         return {"error": f"no provider with the CNPJ {provider_cnpj} found"}, HTTPStatus.NOT_FOUND
     
+    
