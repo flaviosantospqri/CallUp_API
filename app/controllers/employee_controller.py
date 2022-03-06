@@ -35,7 +35,7 @@ def patch_employee(email):
 
     if current_user.type != 'company':
         return {"error": "access denied"}, HTTPStatus.BAD_REQUEST
-        
+
     try:
         data = request.get_json()
 
@@ -59,8 +59,26 @@ def patch_employee(email):
         session.rollback()
         return {'msg': 'employee not found!'}, HTTPStatus.NOT_FOUND
 
+
+@jwt_required
 def delete_employee(email):
-    ...
+    current_user = get_jwt_identity()
+
+    if current_user.type != 'company':
+        return {"error": "access denied"}, HTTPStatus.BAD_REQUEST
+        
+    try:
+        current_employee = session.query(Employee).get(email)
+
+        session.delete(current_employee)
+
+        session.commit()
+
+        return {}, HTTPStatus.NO_CONTENT
+    except:
+        session.rollback()
+        return {'msg': 'Not Found'}, HTTPStatus.NOT_FOUND
+
 def find_employees(email):
     ... 
 def employee_login():
