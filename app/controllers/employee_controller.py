@@ -16,7 +16,7 @@ import re
 
 session: Session = db.session
 
-@jwt_required
+@jwt_required()
 def get_employees():
     try:
         all_employees = session.query(Employee).all()
@@ -30,7 +30,7 @@ def get_employees():
     except: 
         return {"error": "no data found"}
 
-@jwt_required
+@jwt_required()
 def post_employee():
 
   current_user = get_jwt_identity()
@@ -79,12 +79,13 @@ def post_employee():
     
     return jsonify(employee), HTTPStatus.CREATED
 
+@jwt_required()
 def patch_employee(email):
     current_user = get_jwt_identity()
 
     if current_user.type != 'company':
         return {"error": "access denied"}, HTTPStatus.BAD_REQUEST
-        
+
     try:
         data = request.get_json()
 
@@ -108,10 +109,28 @@ def patch_employee(email):
         session.rollback()
         return {'msg': 'employee not found!'}, HTTPStatus.NOT_FOUND
 
-def delete_employee(email):
-    ...
 
-@jwt_required
+@jwt_required()
+def delete_employee(email):
+    current_user = get_jwt_identity()
+
+    if current_user.type != 'company':
+        return {"error": "access denied"}, HTTPStatus.BAD_REQUEST
+        
+    try:
+        current_employee = session.query(Employee).get(email)
+
+        session.delete(current_employee)
+
+        session.commit()
+
+        return {}, HTTPStatus.NO_CONTENT
+    except:
+        session.rollback()
+        return {'msg': 'Not Found'}, HTTPStatus.NOT_FOUND
+      
+      
+@jwt_required()
 def find_employees(email):
     try:
         employee = session.query(Employee).filter_by(email=email).first()
