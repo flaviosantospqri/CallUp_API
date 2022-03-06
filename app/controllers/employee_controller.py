@@ -29,9 +29,13 @@ def get_employees():
         return {"error": "no data found"}
 def post_employee():
     ...
-
+@jwt_required
 def patch_employee(email):
+    current_user = get_jwt_identity()
 
+    if current_user.type != 'company':
+        return {"error": "access denied"}, HTTPStatus.BAD_REQUEST
+        
     try:
         data = request.get_json()
 
@@ -54,7 +58,7 @@ def patch_employee(email):
     except:
         session.rollback()
         return {'msg': 'employee not found!'}, HTTPStatus.NOT_FOUND
-        
+
 def delete_employee(email):
     ...
 def find_employees(email):
