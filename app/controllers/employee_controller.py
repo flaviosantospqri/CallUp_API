@@ -33,7 +33,7 @@ def get_employees():
 @jwt_required
 def post_employee():
 
-    current_user = get_jwt_identity()
+  current_user = get_jwt_identity()
 
     if current_user.type != 'company':
         return {"error": "access denied"}, HTTPStatus.BAD_REQUEST
@@ -80,7 +80,34 @@ def post_employee():
     return jsonify(employee), HTTPStatus.CREATED
 
 def patch_employee(email):
-    ...
+    current_user = get_jwt_identity()
+
+    if current_user.type != 'company':
+        return {"error": "access denied"}, HTTPStatus.BAD_REQUEST
+        
+    try:
+        data = request.get_json()
+
+        columns = [
+            'name',
+            'phone'
+        ]
+
+        valid_data = {item: data[item] for item in data if item in columns}
+
+        current_employee = session.query(Employee).get(email)
+
+        for key, value in valid_data.items():
+            setattr(current_employee, key, value)
+
+        session.add(current_employee)
+        session.commit()
+
+        return jsonify(current_employee), HTTPStatus.OK
+    except:
+        session.rollback()
+        return {'msg': 'employee not found!'}, HTTPStatus.NOT_FOUND
+
 def delete_employee(email):
     ...
 def find_employees(email):
