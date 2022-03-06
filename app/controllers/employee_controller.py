@@ -33,7 +33,20 @@ def patch_employee(email):
     ...
 def delete_employee(email):
     ...
+
+@jwt_required
 def find_employees(email):
-    ... 
+    try:
+        employee = session.query(Employee).filter_by(email=email).first()
+        current_user = get_jwt_identity()
+
+        if current_user.type != 'company':
+            return {"error": "access denied"}, HTTPStatus.BAD_REQUEST
+
+        if employee:
+            return jsonify(employee), HTTPStatus.OK
+    except: 
+        return {"error": "no data found"}
+
 def employee_login():
     ...
