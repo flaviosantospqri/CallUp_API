@@ -1,7 +1,7 @@
 from concurrent.futures.process import _ExceptionWithTraceback
 from flask import request, jsonify, session
 from http import HTTPStatus
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token, jwt_required, get_jwt_identity
 
 from app.configs.database import db
 from sqlalchemy.orm.session import Session
@@ -126,4 +126,13 @@ def find_employees(email):
         return {"error": "no data found"}
 
 def employee_login():
-    ...
+    data = request.get_json()
+
+    employee: Employee = Employee.query.filter_by(email=data["email"]).first()
+
+    if not employee or not employee.check_password(data['password']):
+        return {"error": "E-mail and/or password incorrect."}, HTTPStatus.UNAUTHORIZED
+
+    token = create_access_token(employee)
+
+    return {"access_token": token}, HTTPStatus.ok
