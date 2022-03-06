@@ -29,8 +29,32 @@ def get_employees():
         return {"error": "no data found"}
 def post_employee():
     ...
+
 def patch_employee(email):
-    ...
+
+    try:
+        data = request.get_json()
+
+        columns = [
+            'name',
+            'phone'
+        ]
+
+        valid_data = {item: data[item] for item in data if item in columns}
+
+        current_employee = session.query(Employee).get(email)
+
+        for key, value in valid_data.items():
+            setattr(current_employee, key, value)
+
+        session.add(current_employee)
+        session.commit()
+
+        return jsonify(current_employee), HTTPStatus.OK
+    except:
+        session.rollback()
+        return {'msg': 'employee not found!'}, HTTPStatus.NOT_FOUND
+        
 def delete_employee(email):
     ...
 def find_employees(email):
