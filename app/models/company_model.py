@@ -15,7 +15,8 @@ class Company(db.Model):
     cnpj: String
     email: String
     address: String
-
+    password_hash: String
+    
     __tablename__ = "companies"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     name = Column(String(100), nullable=False, unique=True)
