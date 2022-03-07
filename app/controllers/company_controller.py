@@ -16,14 +16,6 @@ def get_companies():
 
     return jsonify(companies), HTTPStatus.OK
 
-def get_company_by_id(company_id:int):
-    company = Company.query.get(company_id)
-
-    if not company:
-        return {"error": f"company id {company_id} not found"}, HTTPStatus.NOT_FOUND
-
-    return jsonify(company), HTTPStatus.OK
-
 def post_company():
     data = request.get_json()
 
