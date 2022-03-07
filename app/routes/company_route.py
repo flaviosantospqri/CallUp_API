@@ -10,3 +10,4 @@ bp.post("")(company_controller.post_company)
 bp.patch("")(company_controller.update_company)
 
 bp.delete("")(company_controller.delete_company)
+
