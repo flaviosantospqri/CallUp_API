@@ -22,7 +22,7 @@ class Company(db.Model):
     cnpj = Column(String, nullable=False )
     address = Column(Text, nullable=False)
     email = Column(String, nullable=False, unique=True)
-    password_hash = Column(String())
+    password_hash = Column(String(), nullable=False)
 
     employees = relationship("Employee", backref=backref('company', uselist=False))
 

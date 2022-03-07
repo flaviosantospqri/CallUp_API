@@ -33,7 +33,7 @@ def get_employees():
 @jwt_required()
 def post_employee():
 
-  current_user = get_jwt_identity()
+    current_user = get_jwt_identity()
 
     if current_user.type != 'company':
         return {"error": "access denied"}, HTTPStatus.BAD_REQUEST
