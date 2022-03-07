@@ -3,8 +3,9 @@ from email.policy import default
 from sqlite3 import IntegrityError
 from flask import request, jsonify, session
 from http import HTTPStatus
-from flask_jwt_extended import jwt_required, get_jwt_identity
 from werkzeug.exceptions import NotFound
+from turtle import ht
+from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token, jwt_required, get_jwt_identity
 from app.configs.database import db
 from sqlalchemy.orm.session import Session
 import re
@@ -19,16 +20,21 @@ import re
 session: Session = db.session
 
 
-@jwt_required
+@jwt_required()
 def get_employees():
-    ...
+    try:
+        all_employees = session.query(Employee).all()
+        current_user = get_jwt_identity()
 
+        if current_user.type == "employee":
+            return {"error": "access denied"}, HTTPStatus.UNAUTHORIZED
 
-def post_employee():
-    ...
+        if all_employees:
+            return jsonify(all_employees), HTTPStatus.OK
+    except NotFound:
+        return {"error": "no data found"}, HTTPStatus.NOT_FOUND
 
-
-@jwt_required
+@jwt_required()
 def post_employee():
 
     current_user = get_jwt_identity()
@@ -85,7 +91,7 @@ def post_employee():
 
     return jsonify(employee), HTTPStatus.CREATED
 
-
+@jwt_required()
 def patch_employee(email):
     current_user = get_jwt_identity()
 
@@ -94,6 +100,7 @@ def patch_employee(email):
     default = (
         "^(([1-9]{2})[9]{1}[0-9]{4}-[0-9]{4})|(([1-9]{2})[1-9]{1}[0-9]{3}-[0-9]{4})$"
     )
+
     try:
         data = request.get_json()
 
@@ -119,14 +126,47 @@ def patch_employee(email):
         session.rollback()
         return {"msg": "employee not found!"}, HTTPStatus.NOT_FOUND
 
-
+@jwt_required()
 def delete_employee(email):
-    ...
+    current_user = get_jwt_identity()
 
+    if current_user.type != 'company':
+        return {"error": "access denied"}, HTTPStatus.BAD_REQUEST
+        
+    try:
+        current_employee = session.query(Employee).get(email)
 
+        session.delete(current_employee)
+
+        session.commit()
+
+        return {}, HTTPStatus.NO_CONTENT
+    except:
+        session.rollback()
+        return {'msg': 'Not Found'}, HTTPStatus.NOT_FOUND
+      
+@jwt_required()
 def find_employees(email):
-    ...
+    try:
+        employee = session.query(Employee).filter_by(email=email).first()
+        current_user = get_jwt_identity()
 
+        if current_user.type != 'company':
+            return {"error": "access denied"}, HTTPStatus.BAD_REQUEST
+
+        if employee:
+            return jsonify(employee), HTTPStatus.OK
+    except: 
+        return {"error": "no data found"}
 
 def employee_login():
-    ...
+    data = request.get_json()
+
+    employee: Employee = Employee.query.filter_by(email=data["email"]).first()
+
+    if not employee or not employee.check_password(data['password']):
+        return {"error": "E-mail and/or password incorrect."}, HTTPStatus.UNAUTHORIZED
+
+    token = create_access_token(employee)
+
+    return {"access_token": token}, HTTPStatus.ok
