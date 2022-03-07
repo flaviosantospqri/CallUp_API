@@ -1,13 +1,15 @@
 from concurrent.futures.process import _ExceptionWithTraceback
-from turtle import ht
+from email.policy import default
+from sqlite3 import IntegrityError
 from flask import request, jsonify, session
 from http import HTTPStatus
 from werkzeug.exceptions import NotFound
+from turtle import ht
 from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token, jwt_required, get_jwt_identity
 from app.configs.database import db
 from sqlalchemy.orm.session import Session
+import re
 
-from sqlalchemy.exc import IntegrityError
 from app.models.company_model import Company
 from app.models.sector_model import Sector
 
@@ -17,7 +19,8 @@ import re
 
 session: Session = db.session
 
-@jwt_required
+
+@jwt_required()
 def get_employees():
     try:
         all_employees = session.query(Employee).all()
@@ -34,30 +37,38 @@ def get_employees():
 @jwt_required()
 def post_employee():
 
-  current_user = get_jwt_identity()
+    current_user = get_jwt_identity()
 
-    if current_user.type != 'company':
+    if current_user.type != "company":
         return {"error": "access denied"}, HTTPStatus.BAD_REQUEST
 
     data = request.get_json()
 
-    data['company_id'] = current_user.id
+    data["company_id"] = current_user.id
 
     for value in data.values():
         if type(value) != type("string"):
-            return {"error": "All fields must be on string format"}, HTTPStatus.BAD_REQUEST
-    
+            return {
+                "error": "All fields must be on string format"
+            }, HTTPStatus.BAD_REQUEST
+
     default_keys = ["name", "email", "phone", "sector"]
 
     for key in default_keys:
         if key not in data.keys():
-            return {"error": f"Incomplete request, check {key} field"}, HTTPStatus.BAD_REQUEST
+            return {
+                "error": f"Incomplete request, check {key} field"
+            }, HTTPStatus.BAD_REQUEST
 
     for key in data.keys():
         if key not in default_keys:
-            return {"error": f"Incomplete request, check {key} field"}, HTTPStatus.BAD_REQUEST
+            return {
+                "error": f"Incomplete request, check {key} field"
+            }, HTTPStatus.BAD_REQUEST
 
-    phone_regex = "^(([1-9]{2})[9]{1}[0-9]{4}-[0-9]{4})|(([1-9]{2})[1-9]{1}[0-9]{3}-[0-9]{4})$"
+    phone_regex = (
+        "^(([1-9]{2})[9]{1}[0-9]{4}-[0-9]{4})|(([1-9]{2})[1-9]{1}[0-9]{3}-[0-9]{4})$"
+    )
     validated_phone = re.fullmatch(phone_regex, data["phone"])
 
     if not validated_phone:
@@ -77,23 +88,28 @@ def post_employee():
 
     except IntegrityError:
         return {"error": "user already registred"}, HTTPStatus.CONFLICT
-    
+
     return jsonify(employee), HTTPStatus.CREATED
 
 @jwt_required()
 def patch_employee(email):
     current_user = get_jwt_identity()
 
-    if current_user.type != 'company':
-        return {"error": "access denied"}, HTTPStatus.BAD_REQUEST
+    if current_user.type != "company":
+        return {"error": "access denied"}, HTTPStatus.UNAUTHORIZED
+    default = (
+        "^(([1-9]{2})[9]{1}[0-9]{4}-[0-9]{4})|(([1-9]{2})[1-9]{1}[0-9]{3}-[0-9]{4})$"
+    )
 
     try:
         data = request.get_json()
 
-        columns = [
-            'name',
-            'phone'
-        ]
+        columns = ["name", "phone"]
+
+        correct_phone_value = re.fullmatch(default, data["phone"])
+
+        if not correct_phone_value:
+            return {"msg": "phone format is invalid"}, HTTPStatus.BAD_REQUEST
 
         valid_data = {item: data[item] for item in data if item in columns}
 
@@ -106,10 +122,9 @@ def patch_employee(email):
         session.commit()
 
         return jsonify(current_employee), HTTPStatus.OK
-    except:
+    except NotFound:
         session.rollback()
-        return {'msg': 'employee not found!'}, HTTPStatus.NOT_FOUND
-
+        return {"msg": "employee not found!"}, HTTPStatus.NOT_FOUND
 
 @jwt_required()
 def delete_employee(email):
@@ -129,7 +144,6 @@ def delete_employee(email):
     except:
         session.rollback()
         return {'msg': 'Not Found'}, HTTPStatus.NOT_FOUND
-      
       
 @jwt_required()
 def find_employees(email):
