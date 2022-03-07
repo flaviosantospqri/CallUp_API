@@ -19,7 +19,7 @@ def get_companies():
 def post_company():
     data = request.get_json()
 
-    default_keys = ["name", "cnpj", "andress", "email"]
+    default_keys = ["name", "cnpj", "address", "email","password"]
 
     for key in default_keys:
         if key not in data.keys():
@@ -48,3 +48,26 @@ def post_company():
         return {"error": "user already registred"}, HTTPStatus.CONFLICT
     
     return jsonify(company), HTTPStatus.CREATED
+
+def update_company():
+    try: 
+        data = request.get_json()
+
+        company = Company.query.filter_by(cnpj=data['cnpj']).first()
+
+        update_fields = ["name", "address"] 
+
+        valid_data = {item: data[item] for item in data if item in update_fields}
+
+        for key, value in valid_data.items():
+            setattr(company, key, value)
+
+        session.add(company)
+        session.commit()
+    except:
+        session.rollback()
+        return {'msg': 'company not found!'}, HTTPStatus.NOT_FOUND
+    
+    
+    return jsonify(company), HTTPStatus.OK
+            
