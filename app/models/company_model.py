@@ -16,13 +16,13 @@ class Company(db.Model):
     email: String
     address: String
     password_hash: String
-    
+
     __tablename__ = "companies"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    name = Column(String(100), nullable=False, unique=True)
-    cnpj = Column(String, nullable=False )
+    cnpj = Column(String, nullable=False, unique=True )
+    name = Column(String(100), nullable=False)
     address = Column(Text, nullable=False)
-    email = Column(String, nullable=False, unique=True)
+    email = Column(String, nullable=False)
     password_hash = Column(String(), nullable=False)
 
     employees = relationship("Employee", backref=backref('company', uselist=False))
