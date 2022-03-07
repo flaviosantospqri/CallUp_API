@@ -1,8 +1,9 @@
 from concurrent.futures.process import _ExceptionWithTraceback
+from turtle import ht
 from flask import request, jsonify, session
 from http import HTTPStatus
+from werkzeug.exceptions import NotFound
 from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token, jwt_required, get_jwt_identity
-
 from app.configs.database import db
 from sqlalchemy.orm.session import Session
 
@@ -16,19 +17,19 @@ import re
 
 session: Session = db.session
 
-@jwt_required()
+@jwt_required
 def get_employees():
     try:
         all_employees = session.query(Employee).all()
         current_user = get_jwt_identity()
 
-        if current_user.type != 'company':
-            return {"error": "access denied"}, HTTPStatus.BAD_REQUEST
+        if current_user.type == "employee":
+            return {"error": "access denied"}, HTTPStatus.UNAUTHORIZED
 
         if all_employees:
             return jsonify(all_employees), HTTPStatus.OK
-    except: 
-        return {"error": "no data found"}
+    except NotFound:
+        return {"error": "no data found"}, HTTPStatus.NOT_FOUND
 
 @jwt_required()
 def post_employee():
