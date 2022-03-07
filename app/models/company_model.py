@@ -15,14 +15,14 @@ class Company(db.Model):
     cnpj: String
     email: String
     address: String
-
+    
     __tablename__ = "companies"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     name = Column(String(100), nullable=False, unique=True)
     cnpj = Column(String, nullable=False )
     address = Column(Text, nullable=False)
     email = Column(String, nullable=False, unique=True)
-    password_hash = Column(String())
+    password_hash = Column(String(), nullable=False)
 
     employees = relationship("Employee", backref=backref('company', uselist=False))
 
