@@ -6,14 +6,16 @@ from sqlalchemy.exc import IntegrityError
 from app.configs.database import db
 from sqlalchemy.orm.session import Session
 from sqlalchemy.orm.exc import UnmappedInstanceError
-session: Session = db.session
+from flask_jwt_extended import (create_access_token, get_jwt_identity, jwt_required)
 
+session: Session = db.session
+# @jwt_required()
 def get_companies():
     companies = Company.query.all()
-
+    # companny = get_jwt_identity()
     if not companies:
         return {"error": "no data found"}, HTTPStatus.NOT_FOUND
-
+    # return jsonify(companny), HTTPStatus.OK
     return jsonify(companies), HTTPStatus.OK
 
 def post_company():
@@ -54,7 +56,7 @@ def update_company():
         data = request.get_json()
 
         company = Company.query.filter_by(cnpj=data['cnpj']).first()
-
+        
         update_fields = ["name", "address"] 
 
         valid_data = {item: data[item] for item in data if item in update_fields}
@@ -70,7 +72,7 @@ def update_company():
     
     
     return jsonify(company), HTTPStatus.OK
-            
+           
 def delete_company():
     try:
         data = request.get_json()
@@ -84,3 +86,15 @@ def delete_company():
     except UnmappedInstanceError:
         return {"error": f"CNPJ: {data['cnpj']} do not found"}, HTTPStatus.NOT_FOUND
 
+    
+def signin_company():
+    data = request.get_json()
+    company: Company = Company.query.filter_by(email=data["email"]).first()
+    if not company:
+        return {"error": "email not found"}, HTTPStatus.NOT_FOUND
+    if not company.check_password(data["password"]):
+        return {"error": "email and password do not match"}, HTTPStatus.UNAUTHORIZED
+    
+    token = create_access_token(company)
+    
+    return {"token": token}, HTTPStatus.OK
