@@ -3,7 +3,6 @@ from app.models.employee_model import Employee
 from flask import request, jsonify, session
 from http import HTTPStatus
 from werkzeug.exceptions import NotFound
-from turtle import ht
 from flask_jwt_extended import (
     jwt_required,
     get_jwt_identity,
