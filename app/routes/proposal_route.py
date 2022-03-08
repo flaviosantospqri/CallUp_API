@@ -8,6 +8,6 @@ bp.get("")(proposal_controller.get_proposal_accepted)
 
 bp.post("")(proposal_controller.create_proposal)
 
-bp.patch("")(proposal_controller.update_proposal)
+bp.patch("/<proposal_id>")(proposal_controller.update_proposal)
 
-bp.delete("")(proposal_controller.delete_proposal)
+bp.delete("/<proposal_id>")(proposal_controller.delete_proposal)
