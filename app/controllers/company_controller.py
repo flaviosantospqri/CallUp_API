@@ -10,14 +10,13 @@ from flask_jwt_extended import (create_access_token, get_jwt_identity, jwt_requi
 
 session: Session = db.session
 @jwt_required()
-def get_companies():
-    # companies = Company.query.all()
-    companies : Company = get_jwt_identity()
-    if not companies:
-        return jsonify({"companies":[]})
+def get_company():
+   
+    company : Company = get_jwt_identity()
+    if not company:
         return {"error": "no data found"}, HTTPStatus.NOT_FOUND
-    # return jsonify(companny), HTTPStatus.OK
-    return jsonify(companies), HTTPStatus.OK
+ 
+    return jsonify(company), HTTPStatus.OK
 
 def post_company():
     data = request.get_json()
@@ -31,18 +30,23 @@ def post_company():
         if key not in default_keys:
              return {"error": f"Incomplete request, check {key} field"}, HTTPStatus.BAD_REQUEST
     
-    email_regex = "/^[a-z0-9._-]+@[a-z0-9]+.[a-z]+.([a-z]+)?$/i"
+    email_regex = re.compile(r"^[a-zA-Z0-9._-]+@[a-zA-Z0-9]+.[a-zA-Z.a-zA-Z]{1,3}.?[a-zA-Z.a-zA-Z]{1,3}?$")
     validated_email = re.fullmatch(email_regex, data["email"])
 
-    # if not validated_email:
-    #     return {"error": "Wrong email format"}, HTTPStatus.BAD_REQUEST
+    if not validated_email:
+        return {"error": "Wrong email format"}, HTTPStatus.BAD_REQUEST
 
-    cnpj_regex = "/^([0-9]{3}\.?[0-9]{3}\.?[0-9]{3}\-?[0-9]{2}|[0-9]{2}\.?[0-9]{3}\.?[0-9]{3}\/?[0-9]{4}\-?[0-9]{2})$/"
+    cnpj_regex = re.compile(r"([0-9]{2}[.]?[0-9]{3}[.]?[0-9]{3}[\/]?[0-9]{4}[-]?[0-9]{2})")
     validate_cnpj = re.fullmatch(cnpj_regex, data["cnpj"])
 
-    # if not validate_cnpj:
-    #     return {"error": "Wrong CNPJ format"}, HTTPStatus.BAD_REQUEST
+    if not validate_cnpj:
+        return {"error": "Wrong CNPJ format"}, HTTPStatus.BAD_REQUEST
 
+    password_regex = re.compile(r"^(((?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%<^&*?])[a-zA-Z0-9!@#$%<^&*?]{8,})|([a-zA-Z]+([- .,_][a-zA-Z]+){4,}))$")
+    validate_password = re.fullmatch(password_regex, data['password'])
+
+    if not validate_password:
+        return {"error": "Wrong password format"}, HTTPStatus.BAD_REQUEST
     try:
         company =  Company(**data)
         session.add(company)
