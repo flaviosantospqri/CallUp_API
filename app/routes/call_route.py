@@ -7,7 +7,6 @@ bp.get("")(call_controller.get_call)
 bp.get("/<id>")(call_controller.get_call_id)
 
 bp.post("")(call_controller.post_call)
-bp.post("")(call_controller.signin_call)
 
 bp.patch("/<id>")(call_controller.update_call)
 
