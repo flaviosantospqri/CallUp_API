@@ -1,15 +1,15 @@
-from app.models.proposal_model import Proposal
-from flask import request, jsonify, current_app
-import re
+from flask_jwt_extended import (create_access_token, get_jwt_identity, jwt_required)
 from werkzeug.exceptions import NotFound, Unauthorized
-from http import HTTPStatus
+from sqlalchemy.orm.exc import UnmappedInstanceError
+from flask import request, jsonify, current_app
+from app.models.proposal_model import Proposal
+from sqlalchemy.orm.session import Session
 from sqlalchemy.exc import IntegrityError
 from app.configs.database import db
-from sqlalchemy.orm.session import Session
-from sqlalchemy.orm.exc import UnmappedInstanceError
-from flask_jwt_extended import (create_access_token, get_jwt_identity, jwt_required)
+from http import HTTPStatus
+import re
 
-from app.models.provider_model import Provider
+
 
 session : Session = db.session
 
@@ -91,3 +91,17 @@ def update_proposal():
 
         return {"error": "no data found"}, HTTPStatus.NOT_FOUND
 
+@jwt_required()
+def delete_proposal():
+    current_user = get_jwt_identity()
+    
+    try:
+        proposal = Proposal.query.get(id).first()
+        # proposal = Proposal.query.filter_by(provider_id=current_user.id, id=proposal.id).first()
+        session.delete(proposal)
+        session.commit()
+        
+        return "", HTTPStatus.OK
+
+    except UnmappedInstanceError:
+        return {"error": f"Proposal {proposal.id} do not found"}, HTTPStatus.NOT_FOUND
