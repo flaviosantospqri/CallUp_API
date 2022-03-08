@@ -25,7 +25,7 @@ def get_employees():
     try:
         all_employees = session.query(Employee).all()
         current_user = get_jwt_identity()
-
+        
         if current_user.type == "employee":
             return {"error": "access denied"}, HTTPStatus.UNAUTHORIZED
 
