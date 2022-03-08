@@ -9,11 +9,12 @@ from sqlalchemy.orm.exc import UnmappedInstanceError
 from flask_jwt_extended import (create_access_token, get_jwt_identity, jwt_required)
 
 session: Session = db.session
-# @jwt_required()
+@jwt_required()
 def get_companies():
-    companies = Company.query.all()
-    # companny = get_jwt_identity()
+    # companies = Company.query.all()
+    companies : Company = get_jwt_identity()
     if not companies:
+        return jsonify({"companies":[]})
         return {"error": "no data found"}, HTTPStatus.NOT_FOUND
     # return jsonify(companny), HTTPStatus.OK
     return jsonify(companies), HTTPStatus.OK
