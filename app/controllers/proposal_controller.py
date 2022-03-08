@@ -1,6 +1,4 @@
-from xmlrpc.client import Boolean
 from flask_jwt_extended import (create_access_token, get_jwt_identity, jwt_required)
-from itsdangerous import json
 from werkzeug.exceptions import NotFound, Unauthorized
 from sqlalchemy.orm.exc import UnmappedInstanceError
 from flask import request, jsonify, current_app
@@ -10,7 +8,6 @@ from sqlalchemy.orm.session import Session
 from sqlalchemy.exc import IntegrityError
 from app.configs.database import db
 from http import HTTPStatus
-import re
 
 
 
@@ -78,6 +75,7 @@ def create_proposal():
     return jsonify(proposal), HTTPStatus.CREATED
 
 @jwt_required()
+
 def update_proposal(proposal_id):
 
     current_user = get_jwt_identity()
@@ -87,6 +85,7 @@ def update_proposal(proposal_id):
 
     try:
         data = request.get_json()
+
 
         proposal : Proposal = Proposal.query.get(proposal_id)
 
@@ -107,6 +106,7 @@ def update_proposal(proposal_id):
         return {"error": "no data found"}, HTTPStatus.NOT_FOUND
 
 @jwt_required()
+
 def delete_proposal(proposal_id):
     current_user = get_jwt_identity()
     
