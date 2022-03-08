@@ -3,7 +3,7 @@ from http import HTTPStatus
 from app.exc.provider_exc import CnpjFormatInvalidError, EmailFormatInvalidError, PasswordFormatinvalidError
 from app.models.provider_model import Provider
 from werkzeug.exceptions import NotFound, Unauthorized
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from app.configs.database import db
 from app.services.provider_service import validate_cnpj, validate_email, validate_password
 
@@ -60,7 +60,7 @@ def patch_provider():
         return {"error": "no data found"}, HTTPStatus.NOT_FOUND
 
 
-def post_provider():
+def post_register_provider():
     session = db.session
 
     data = request.get_json()
@@ -87,3 +87,20 @@ def post_provider():
     session.commit()
 
     return jsonify(new_provider), HTTPStatus.CREATED
+
+
+def post_login_provider():
+
+    data = request.get_json()
+
+    provider: Provider = (Provider.query.filter_by(email=data["email"])).first()
+
+    if not provider:
+        return {"error": "Email not found"}
+
+    if not provider.password_check(data["password"]):
+        return {"error": "Incorret password"}
+
+    token = create_access_token(provider)
+
+    return {"token": token}, HTTPStatus.OK
