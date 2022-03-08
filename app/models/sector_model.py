@@ -14,6 +14,6 @@ class Sector(db.Model):
     __tablename__ = "sectors"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    name = Column(String(225), nullable=False, unique=True)
+    name = Column(String(127), nullable=False, unique=True)
 
     employees = relationship("Employee", backref=backref('sector', uselist=False))
