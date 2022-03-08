@@ -25,3 +25,37 @@ def get_proposal_accepted():
         return {"error": "acess denied"}, HTTPStatus.UNAUTHORIZED
     
     ...
+@jwt_required()
+def create_proposal():
+    
+    current_user = get_jwt_identity()
+    # if current_user.type != "provider":
+    #     return {"error": "access denied"}, HTTPStatus.BAD_REQUEST
+    
+    data = request.get_json()
+    data["provider_id"] = current_user
+    
+    default_keys = ["price", "description", "provider_id", "call_id"]
+
+    for key in default_keys:
+        if key not in data.keys():
+            return {
+                "error": f"Incomplete request, check {key} field"
+            }, HTTPStatus.BAD_REQUEST
+
+    for key in data.keys():
+        if key not in default_keys:
+            return {
+                "error": f"Incomplete request, check {key} field"
+            }, HTTPStatus.BAD_REQUEST
+
+    try:
+        proposal = Proposal(**data)
+
+        session.add(proposal)
+        session.commit()
+    except IntegrityError:
+        return {"error": "Proposal already registred"}, HTTPStatus.CONFLICT
+    
+    return jsonify(proposal), HTTPStatus.CREATED
+
