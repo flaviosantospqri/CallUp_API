@@ -1,6 +1,6 @@
 from app.models.call_model import Call
 from app.models.employee_model import Employee
-from flask import request, jsonify, session
+from flask import request, jsonify
 from http import HTTPStatus
 from werkzeug.exceptions import NotFound
 from flask_jwt_extended import (
