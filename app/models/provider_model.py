@@ -19,7 +19,7 @@ class Provider(db.Model):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     name = Column(String(127), nullable=False)
-    cnpj = Column(String(511), nullable=False)
+    cnpj = Column(String(18), nullable=False, unique=True)
     email = Column(String(255), nullable=False, unique=True)
     about = Column(String(255))
     password_hash = Column(String(511), nullable=False)

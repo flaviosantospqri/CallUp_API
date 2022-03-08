@@ -18,12 +18,12 @@ class Employee(db.Model):
     __tablename__ = "employees"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    name = Column(String(80), nullable=False, unique=True)
+    name = Column(String(127), nullable=False, unique=True)
     company_id = Column(UUID(as_uuid=True), ForeignKey('companies.id'), nullable=False)
     sector_id = Column(UUID(as_uuid=True), ForeignKey('sectors.id'), nullable=False)
     phone = Column(String(255))
     email = Column(String(255), unique=True, nullable=False)
-    password_hash = Column(String)
+    password_hash = Column(String(511), nullable=False)
 
     calls = relationship("Call", backref=backref('employee', uselist=False))
     providers = relationship("Provider", secondary='providers_customers', backref='clients')

@@ -14,7 +14,7 @@ class SubCategory(db.Model):
     __tablename__ = "subcategories"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    name = Column(String(80), nullable=False, unique=True)
+    name = Column(String(127), nullable=False, unique=True)
     category_id = Column(UUID(as_uuid=True), ForeignKey('categories.id'), nullable=False)
 
     calls = relationship("Call", backref=backref('subcategory', uselist=False))
