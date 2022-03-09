@@ -1,4 +1,5 @@
 from flask import request, jsonify, current_app
+from app.exc.provider_exc import CnpjFormatInvalidError, EmailFormatInvalidError, PasswordFormatinvalidError
 from app.models.company_model import Company
 import re
 from http import HTTPStatus
@@ -20,28 +21,30 @@ def get_company():
 
 def post_company():
     data = request.get_json()
-
-    default_keys = ["name", "cnpj", "address", "email","password"]
-
-    for key in default_keys:
-        if key not in data.keys():
-            return {"error": f"Incomplete request, check {key} field"}, HTTPStatus.BAD_REQUEST 
-    for key in data.keys():
-        if key not in default_keys:
-             return {"error": f"Incomplete request, check {key} field"}, HTTPStatus.BAD_REQUEST
     
-    email_regex = re.compile(r"^[a-zA-Z0-9._-]+@[a-zA-Z0-9]+.[a-zA-Z.a-zA-Z]{1,3}.?[a-zA-Z.a-zA-Z]{1,3}?$")
-    validated_email = re.fullmatch(email_regex, data["email"])
+    Company.check_fields(data)
 
-    if not validated_email:
-        return {"error": "Wrong email format"}, HTTPStatus.BAD_REQUEST
+    # default_keys = ["name", "cnpj", "address", "email","password"]
+    
+    # for key in default_keys:
+    #     if key not in data.keys():
+    #         return {"error": f"Incomplete request, check {key} field"}, HTTPStatus.BAD_REQUEST 
+    # for key in data.keys():
+    #     if key not in default_keys:
+    #          return {"error": f"Incomplete request, check {key} field"}, HTTPStatus.BAD_REQUEST
+    
+    # email_regex = re.compile(r"^[a-zA-Z0-9._-]+@[a-zA-Z0-9]+.[a-zA-Z.a-zA-Z]{1,3}.?[a-zA-Z.a-zA-Z]{1,3}?$")
+    # validated_email = re.fullmatch(email_regex, data["email"])
 
-    cnpj_regex = re.compile(r"([0-9]{2}[.]?[0-9]{3}[.]?[0-9]{3}[\/]?[0-9]{4}[-]?[0-9]{2})")
-    validate_cnpj = re.fullmatch(cnpj_regex, data["cnpj"])
+    # if not validated_email:
+    #     return {"error": "Wrong email format"}, HTTPStatus.BAD_REQUEST
 
-    if not validate_cnpj:
-        return {"error": "Wrong CNPJ format"}, HTTPStatus.BAD_REQUEST
+    # cnpj_regex = re.compile(r"([0-9]{2}[.]?[0-9]{3}[.]?[0-9]{3}[\/]?[0-9]{4}[-]?[0-9]{2})")
+    # validate_cnpj = re.fullmatch(cnpj_regex, data["cnpj"])
 
+    # if not validate_cnpj:
+    #     return {"error": "Wrong CNPJ format"}, HTTPStatus.BAD_REQUEST
+    
     password_regex = re.compile(r"^(((?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%<^&*?])[a-zA-Z0-9!@#$%<^&*?]{8,})|([a-zA-Z]+([- .,_][a-zA-Z]+){4,}))$")
     validate_password = re.fullmatch(password_regex, data['password'])
 
@@ -53,7 +56,12 @@ def post_company():
         session.commit()
     except IntegrityError:
         return {"error": "company already registred"}, HTTPStatus.CONFLICT
-    
+    except CnpjFormatInvalidError:
+        return {"error": "Wrong CNPJ format"}, HTTPStatus.BAD_REQUEST
+    except EmailFormatInvalidError:
+        return {"error": "Wrong email format"}, HTTPStatus.BAD_REQUEST
+    except PasswordFormatinvalidError:
+        return {"error": "Wrong password format"}, HTTPStatus.BAD_REQUEST
     return jsonify(company), HTTPStatus.CREATED
 
 def update_company():
@@ -61,7 +69,7 @@ def update_company():
         data = request.get_json()
 
         company = Company.query.filter_by(cnpj=data['cnpj']).first()
-        
+  
         update_fields = ["name", "address"] 
 
         valid_data = {item: data[item] for item in data if item in update_fields}
