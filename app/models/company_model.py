@@ -42,7 +42,9 @@ class Company(db.Model):
         return check_password_hash(self.password_hash, check_compare)
 
 
-
+    @validates('name')
+    def normalize_name(self, key, name_for_normalize):
+        return name_for_normalize.title()
 
     @validates('email')
     def validate_email(self, key, email_for_validate):
@@ -50,7 +52,7 @@ class Company(db.Model):
         validated_email = re.fullmatch(email_regex, email_for_validate)
         if not validated_email:
             raise EmailFormatInvalidError
-        return email_for_validate
+        return email_for_validate.lower()
 
     @validates('password')
     def validate_password(self, key, password_to_validate):
@@ -61,7 +63,7 @@ class Company(db.Model):
         return password_to_validate
 
     @validates('cnpj')       
-    def validate_cnpj(self, key, cnpj_for_validate):
+    def validate_cnpj(self, _, cnpj_for_validate):
         cnpj_regex = re.compile(r"([0-9]{2}[.]?[0-9]{3}[.]?[0-9]{3}[\/]?[0-9]{4}[-]?[0-9]{2})")
         validate_cnpj = re.fullmatch(cnpj_regex, cnpj_for_validate)
         if not validate_cnpj:
@@ -78,4 +80,12 @@ class Company(db.Model):
             if key not in default_keys:
                 return {"error": f"Incomplete request, check {key} field"}, HTTPStatus.BAD_REQUEST
    
+    def check_data_for_update(data):
+        update_fields = ["name", "address"] 
+
+        valid_data = {item: data[item] for item in data if item in update_fields}
+
+        for key, value in valid_data.items():
+            setattr(data, key, value)
+        return data
 
