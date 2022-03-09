@@ -78,3 +78,31 @@ def post_call():
         session.commit()
     except IntegrityError:
         return {"error": "call already registred"}, HTTPStatus.CONFLICT
+
+      
+@jwt_required()
+def update_call(id):
+    current_user = get_jwt_identity()
+
+    if current_user.type != "employee":
+        return {"error": "access denied"}, HTTPStatus.UNAUTHORIZED
+
+    try:
+        data = request.get_json()
+
+        columns = ["description", "open", "scheduling", "subcategory_id", "category_id", "employee_id", "selected_proposal"]
+
+        valid_data = {item: data[item] for item in data if item in columns}
+
+        current_call = session.query(Call).get(id)
+
+        for key, value in valid_data.items():
+            setattr(current_call, key, value)
+
+        session.add(current_call)
+        session.commit()
+
+        return jsonify(current_call), HTTPStatus.OK
+
+    except NotFound:
+        return {"msg": "call not found!"}, HTTPStatus.NOT_FOUND
