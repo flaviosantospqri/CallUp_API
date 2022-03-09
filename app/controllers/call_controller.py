@@ -25,6 +25,25 @@ def get_call():
             return jsonify(all_call), HTTPStatus.OK
     except NotFound:
         return jsonify(all_call), HTTPStatus.NOT_FOUND
+      
+      
+@jwt_required()
+def get_call_id(id):
+    current_user = get_jwt_identity()
+
+    if current_user.type == "provider":
+        return {"error": "access denied"}, HTTPStatus.UNAUTHORIZED
+
+    employee = Employee.query.filter_by(id=id).first()
+    calls_list = Call.query.filter_by(employee_id=employee.id)
+
+    filtered_list = []
+
+    for call in calls_list:
+        if call.employee_id == employee.id:
+            filtered_list.append(call)
+
+    return jsonify(filtered_list), HTTPStatus.OK
 
 
 @jwt_required
