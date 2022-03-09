@@ -59,3 +59,20 @@ def update_call(id):
     except NotFound:
         return {"msg": "call not found!"}, HTTPStatus.NOT_FOUND
 
+@jwt_required()
+def delete_call(id):
+    current_user = get_jwt_identity()
+
+    if current_user.type != "employee":
+        return {"error": "access denied"}, HTTPStatus.UNAUTHORIZED
+
+    try:        
+        current_call = session.query(Call).get(id)
+
+        session.delete(current_call)
+        session.commit()
+
+        return jsonify(current_call), HTTPStatus.OK
+
+    except NotFound:
+        return {"msg": "call not found!"}, HTTPStatus.NOT_FOUND
