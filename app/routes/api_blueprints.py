@@ -1,4 +1,4 @@
-# from app.routes.provider_route import bp_provider
+from app.routes.provider_route import bp as bp_provider
 from app.routes.subcategory_route import bp as bp_sub_category
 from app.routes.category_route import bp as bp_category
 from app.routes.proposal_route import bp as bp_proposal
@@ -15,6 +15,6 @@ bp_api.register_blueprint(bp_sub_category)
 bp_api.register_blueprint(bp_route)
 bp_api.register_blueprint(bp_employee)
 # bp_api.register_blueprint(bp_call)
-# bp_api.register_blueprint(bp_provider)
+bp_api.register_blueprint(bp_provider)
 bp_api.register_blueprint(bp_proposal)
 bp_api.register_blueprint(bp_company)
