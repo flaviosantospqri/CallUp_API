@@ -9,4 +9,4 @@ def get_categories():
     if not categories:
         return {"error": "no data found"}, HTTPStatus.NOT_FOUND
 
-    return jsonify(categories.items), HTTPStatus.OK
+    return jsonify(categories), HTTPStatus.OK
