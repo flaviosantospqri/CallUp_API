@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, String, ForeignKey
 from sqlalchemy.orm import relationship, backref
 from werkzeug.security import check_password_hash, generate_password_hash
 from app.configs.database import db
@@ -14,6 +14,7 @@ class Employee(db.Model):
     sector_id: int
     phone: str
     email: str
+    type: str
 
     __tablename__ = "employees"
 
@@ -24,6 +25,7 @@ class Employee(db.Model):
     phone = Column(String(255))
     email = Column(String(255), unique=True, nullable=False)
     password_hash = Column(String(511), nullable=False)
+    type = Column(String, default='employee')
 
     calls = relationship("Call", backref=backref('employee', uselist=False))
     providers = relationship("Provider", secondary='providers_customers', backref='clients')

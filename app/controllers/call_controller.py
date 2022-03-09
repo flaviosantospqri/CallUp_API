@@ -12,38 +12,39 @@ from flask_jwt_extended import (
 )
 from app.configs.database import db
 from sqlalchemy.orm.session import Session
-import re
+from werkzeug.exceptions import Unauthorized, BadRequest
 
 session: Session = db.session
 
-
+@jwt_required()
 def get_call():
-    try:
-        all_call = session.query(Call).all()
 
-        if all_call:
-            return jsonify(all_call), HTTPStatus.OK
-    except NotFound:
-        return jsonify(all_call), HTTPStatus.NOT_FOUND
-      
+    all_call = session.query(Call).all()
+
+    return jsonify(all_call), HTTPStatus.OK
+
       
 @jwt_required()
 def get_call_id(id):
-    current_user = get_jwt_identity()
+    try:
+        current_user = get_jwt_identity()
 
-    if current_user.type == "provider":
+        if current_user.type == "provider":
+            raise Unauthorized
+
+        employee = Employee.query.filter_by(id=id).first()
+        calls_list = Call.query.filter_by(employee_id=employee.id)
+
+        filtered_list = []
+
+        for call in calls_list:
+            if call.employee_id == employee.id:
+                filtered_list.append(call)
+
+        return jsonify(filtered_list), HTTPStatus.OK
+
+    except Unauthorized:
         return {"error": "access denied"}, HTTPStatus.UNAUTHORIZED
-
-    employee = Employee.query.filter_by(id=id).first()
-    calls_list = Call.query.filter_by(employee_id=employee.id)
-
-    filtered_list = []
-
-    for call in calls_list:
-        if call.employee_id == employee.id:
-            filtered_list.append(call)
-
-    return jsonify(filtered_list), HTTPStatus.OK
 
 
 @jwt_required
@@ -53,9 +54,7 @@ def post_call():
         data = request.get_json()
 
         if current_user.type != "employee":
-            return {"error": "access denied"}, HTTPStatus.UNAUTHORIZED
-
-        data["employee_id"] = current_user.id
+            raise Unauthorized
 
         default_keys = [
             "description",
@@ -66,18 +65,28 @@ def post_call():
             "employee_id",
         ]
 
-        for key in default_keys:
-            if key not in data.keys():
-                return {
-                    "error": f"Incomplete request, check {key} field"
-                }, HTTPStatus.BAD_REQUEST
+        valid_data = {item: data[item] for item in data if item in default_keys}
 
-        call = Call(**data)
+        for key in default_keys:
+            if key not in valid_data.keys():
+                raise BadRequest(description={"error": f"Incomplete request, check {key} field"})
+
+        valid_data["employee_id"] = current_user.id
+
+        call = Call(**valid_data)
 
         session.add(call)
         session.commit()
+
     except IntegrityError:
         return {"error": "call already registred"}, HTTPStatus.CONFLICT
+
+    except Unauthorized:
+        return {"error": "access denied"}, HTTPStatus.UNAUTHORIZED
+    
+    except BadRequest as e:
+        return e.description, HTTPStatus.BAD_REQUEST
+
 
       
 @jwt_required()
@@ -85,14 +94,14 @@ def update_call(id):
     current_user = get_jwt_identity()
 
     if current_user.type != "employee":
-        return {"error": "access denied"}, HTTPStatus.UNAUTHORIZED
+        raise Unauthorized
 
     try:
         data = request.get_json()
 
-        columns = ["description", "open", "scheduling", "subcategory_id", "category_id", "employee_id", "selected_proposal"]
+        default_keys = ["description", "open", "scheduling", "subcategory_id", "category_id", "employee_id", "selected_proposal"]
 
-        valid_data = {item: data[item] for item in data if item in columns}
+        valid_data = {item: data[item] for item in data if item in default_keys}
 
         current_call = session.query(Call).get(id)
 
@@ -107,13 +116,16 @@ def update_call(id):
     except NotFound:
         return {"msg": "call not found!"}, HTTPStatus.NOT_FOUND
 
+    except Unauthorized:
+        return {"error": "access denied"}, HTTPStatus.UNAUTHORIZED
+
 
 @jwt_required()
 def delete_call(id):
     current_user = get_jwt_identity()
 
     if current_user.type != "employee":
-        return {"error": "access denied"}, HTTPStatus.UNAUTHORIZED
+        raise Unauthorized
 
     try:        
         current_call = session.query(Call).get(id)
@@ -124,4 +136,7 @@ def delete_call(id):
         return jsonify(current_call), HTTPStatus.OK
 
     except NotFound:
-              return {"msg": "call not found!"}, HTTPStatus.NOT_FOUND
+        return {"msg": "call not found!"}, HTTPStatus.NOT_FOUND
+    
+    except Unauthorized:
+        return {"error": "access denied"}, HTTPStatus.UNAUTHORIZED

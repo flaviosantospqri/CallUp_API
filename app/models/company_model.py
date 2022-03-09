@@ -15,6 +15,7 @@ class Company(db.Model):
     cnpj: String
     email: String
     address: String
+    type: str
 
 
     __tablename__ = "companies"
@@ -24,6 +25,7 @@ class Company(db.Model):
     address = Column(Text, nullable=False)
     email = Column(String(255), nullable=False, unique=True)
     password_hash = Column(String(511), nullable=False)
+    type = Column(String, default='company')
 
     employees = relationship("Employee", backref=backref('company', uselist=False))
 

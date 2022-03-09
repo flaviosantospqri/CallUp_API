@@ -14,6 +14,7 @@ class Provider(db.Model):
     cnpj: str
     about: str
     email: str
+    type: str
 
     __tablename__ = "providers"
 
@@ -23,6 +24,7 @@ class Provider(db.Model):
     email = Column(String(255), nullable=False, unique=True)
     about = Column(String(255))
     password_hash = Column(String(511), nullable=False)
+    type = Column(String, default='provider')
 
     proposals = relationship("Proposal", backref=backref('provider', uselist=False))
 

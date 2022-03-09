@@ -36,7 +36,7 @@ def gener_data_categories():
     hardware = {"name": "Hardware"}
     peripherals = {"name": "Peripherals"}
     support = {"name": "Support"}
-    gorvenance_system = {"name": "Gorvenance System"}
+    governance_system = {"name": "Governance System"}
 
     data = [
         system_analysis,
@@ -45,7 +45,7 @@ def gener_data_categories():
         hardware,
         peripherals,
         support,
-        gorvenance_system,
+        governance_system,
     ]
 
     for element in data:
@@ -59,6 +59,7 @@ def gener_data_subcategories():
         system_analysis = (
             session.query(Category).filter_by(name="System Analysis").first()
         )
+        print(system_analysis)
         performance_analysis = {
             "category_id": system_analysis.id,
             "name": "Performance Analysis",
@@ -68,7 +69,7 @@ def gener_data_subcategories():
             "name": "Feature Analysis",
         }
         error_analysis = {"category_id": system_analysis.id, "name": "Error Analysis"}
-
+        print(performance_analysis)
         networks = session.query(Category).filter_by(name="Networks").first()
         connection_failures = {
             "category_id": networks.id,
@@ -115,16 +116,18 @@ def gener_data_subcategories():
         call = {"category_id": support.id, "name": "Call"}
         chat = {"category_id": support.id, "name": "Chat"}
 
-        gorvenance_system = (
-            session.query(Category).filter_by(name="Gorvenance_system").first()
+        governance_system = (
+            session.query(Category).filter_by(name="Governance System").first()
         )
+
         network_data_management = {
-            "category_id": gorvenance_system.id,
+            "category_id": governance_system.id,
             "name": "Network data management",
         }
-        safe_browsing = {"category_id": gorvenance_system.id, "name": "Safe browsing"}
+
+        safe_browsing = {"category_id": governance_system.id, "name": "Safe browsing"}
         evaluation_of_services_performed = {
-            "category_id": gorvenance_system.id,
+            "category_id": governance_system.id,
             "name": "Evaluation of services performed",
         }
 
@@ -157,7 +160,7 @@ def gener_data_subcategories():
             safe_browsing,
             evaluation_of_services_performed,
         ]
-
+        
         for element in data:
             value_element = SubCategory(**element)
             session.add(value_element)
