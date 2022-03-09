@@ -120,3 +120,4 @@ def delete_proposal(proposal_id):
 
     except UnmappedInstanceError:
         return {"error": f"Proposal {proposal.id} do not found"}, HTTPStatus.NOT_FOUND
+

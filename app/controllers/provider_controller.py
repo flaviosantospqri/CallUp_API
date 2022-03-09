@@ -2,6 +2,7 @@ from flask import jsonify, request
 from http import HTTPStatus
 from app.models.provider_model import Provider
 from werkzeug.exceptions import NotFound, Unauthorized
+from sqlalchemy.orm.exc import UnmappedInstanceError
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.configs.database import db
 
@@ -56,3 +57,20 @@ def patch_provider():
     except NotFound:
 
         return {"error": "no data found"}, HTTPStatus.NOT_FOUND
+
+@jwt_required()
+def delete_provider(provider_id):
+
+    session = db.session
+    current_provider = get_jwt_identity()
+
+    try:
+        provider = Provider.query.get(provider_id)
+        
+        session.delete(provider)
+        session.commit()
+
+        return "", HTTPStatus.OK
+
+    except UnmappedInstanceError:
+        return {"error": f"Provider {provider.id} do not found"}, HTTPStatus.NOT_FOUND 
