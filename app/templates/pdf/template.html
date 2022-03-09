@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <h1>Hello, {{ name }}!</h1>
+
+    <ul>
+      {% for call in calls %}
+      <li>
+        <h2>Call:</h2>
+        <p>{{ call.id }}</p>
+        <h2>Description:</h2>
+        <p>{{ call.description }}</p>
+        <h2>Open:</h2>
+        <p>{{ call.open }}</p>
+        <h2>Scheduling:</h2>
+        <p>{{ call.scheduling }}</p>
+        <h2>Category:</h2>
+        <p>{{ call.category_id }}</p>
+        <h2>Subcategory:</h2>
+        <p>{{ call.subcategory_id }}</p>
+        <h2>Employee:</h2>
+        <p>{{ call.employee_id }}</p>
+        <h2>Selected Proposal:</h2>
+        <p>{{ call.selected_proposal }}</p>
+      </li>
+      {% endfor %}
+    </ul>
+  </body>
+</html>

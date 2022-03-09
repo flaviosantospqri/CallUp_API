@@ -8,6 +8,7 @@ def create_app():
 
     app.config["JSON_SORT_KEY"] = False
 
+    email.init_app(app)
     database.init_app(app)
     migrations.init_app(app)
     jwt_auth.init_app(app)
