@@ -77,7 +77,7 @@ class Provider(db.Model):
 
     @staticmethod
     def check_fields(data):
-        default_keys = ["name", "cnpj", "email", "about", "type"]
+        default_keys = ["name", "cnpj", "email", "about", "password"]
 
         valid_data = {item: data[item] for item in data if item in default_keys}
 
