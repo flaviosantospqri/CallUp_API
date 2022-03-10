@@ -11,6 +11,7 @@ from flask_mail import Message, Mail
 from pdfkit import from_string
 from os import getenv
 
+
 session: Session = db.session
 
 
@@ -54,6 +55,7 @@ def post_company():
         return e.description, HTTPStatus.BAD_REQUEST
 
 
+
 @jwt_required()
 def update_company():
     try:
@@ -66,6 +68,7 @@ def update_company():
         company = session.query(Company).get_or_404(current_user["id"])
 
         valid_data = Company.check_data_for_update(data)
+
 
         for key, value in valid_data.items():
             setattr(company, key, value)
@@ -81,7 +84,6 @@ def update_company():
     except Unauthorized:
         return {"error": "access denied"}, HTTPStatus.BAD_REQUEST
 
-    
 
 @jwt_required()
 def delete_company():
@@ -97,6 +99,7 @@ def delete_company():
 
     except UnmappedInstanceError:
         return {"error": "company not found!"}, HTTPStatus.NOT_FOUND
+
 
 
 def signin_company():
