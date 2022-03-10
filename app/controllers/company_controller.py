@@ -38,9 +38,9 @@ def get_company():
 def post_company():
     data = request.get_json()
 
-    valid_data = Company.check_fields(data)
-
     try:
+        valid_data = Company.check_fields(data)
+        
         company = Company(**valid_data)
 
         session.add(company)
@@ -129,9 +129,9 @@ def send_pdf():
             raise Unauthorized
 
 
-        company = Company.query.filter_by(email=current_user.email).first()
+        company = Company.query.filter_by(email=current_user["email"]).first()
 
-        company_calls = [call for employee in company["employees"] for call in employee["calls"]]
+        company_calls = [call for employee in company.employees for call in employee.calls]
 
 
         pdf = from_string(

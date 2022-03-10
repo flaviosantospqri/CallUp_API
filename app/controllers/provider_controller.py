@@ -78,7 +78,7 @@ def create_provider():
         return {"error": f"Provider already registred"}, HTTPStatus.CONFLICT
 
     except BadRequest as e:
-        return {str(e.description)}, HTTPStatus.BAD_REQUEST
+        return e.description, HTTPStatus.BAD_REQUEST
     return jsonify(provider), HTTPStatus.CREATED
 
 
