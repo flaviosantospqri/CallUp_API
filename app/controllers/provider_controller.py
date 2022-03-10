@@ -16,9 +16,9 @@ def get_providers():
     return jsonify(providers), HTTPStatus.OK
 
 
-def get_provider_by_id(provider_id):
+def get_provider_by_cnpj(provider_cnpj):
     try:
-        provider = Provider.query.filter_by(cidnpj=provider_id).first_or_404()
+        provider = Provider.query.filter_by(cnpj=provider_cnpj).first_or_404()
 
         return jsonify(provider), HTTPStatus.OK
 
