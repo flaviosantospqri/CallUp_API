@@ -16,7 +16,6 @@ from flask_jwt_extended import (
 from app.configs.database import db
 from sqlalchemy.orm.session import Session
 import re
-from app.exc.provider_exc import PhoneFormatInvalidError
 
 from app.models.company_model import Company
 from app.models.sector_model import Sector
