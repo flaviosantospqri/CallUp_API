@@ -39,7 +39,7 @@ def get_proposal_accepted():
                         final_list.append({"call": call, "proposal": proposal})
         return jsonify(final_list), HTTPStatus.OK
     except BadRequest as e:
-        return {str(e.description)}, HTTPStatus.BAD_REQUEST
+        return e.description, HTTPStatus.BAD_REQUEST
 
 
 @jwt_required()
@@ -74,7 +74,7 @@ def create_proposal():
         session.commit()
 
     except BadRequest as e:
-        return {str(e.description)}, HTTPStatus.BAD_REQUEST
+        return e.description, HTTPStatus.BAD_REQUEST
     except IntegrityError:
         return {"error": "Proposal already registred"}, HTTPStatus.CONFLICT
 
@@ -107,7 +107,7 @@ def update_proposal(proposal_id):
         return jsonify(proposal), HTTPStatus.OK
 
     except BadRequest as e:
-        return {str(e.description)}, HTTPStatus.BAD_REQUEST
+        return e.description, HTTPStatus.BAD_REQUEST
     except NotFound:
         return {"error": "no data found"}, HTTPStatus.NOT_FOUND
 
@@ -124,7 +124,7 @@ def delete_proposal(proposal_id):
 
         return "", HTTPStatus.OK
     except BadRequest as e:
-        return {str(e.description)}, HTTPStatus.BAD_REQUEST
+        return e.description, HTTPStatus.BAD_REQUEST
     except UnmappedInstanceError:
         return {
             "error": f"Proposal {proposal['id']} do not found"

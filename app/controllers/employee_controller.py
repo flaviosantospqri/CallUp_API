@@ -1,10 +1,7 @@
-from concurrent.futures.process import _ExceptionWithTraceback
-from email.policy import default
 from sqlite3 import IntegrityError
 from flask import request, jsonify, session
 from http import HTTPStatus
 from werkzeug.exceptions import NotFound, Unauthorized
-from turtle import ht
 from werkzeug.exceptions import BadRequest
 from flask_jwt_extended import (
     jwt_required,
@@ -15,14 +12,12 @@ from flask_jwt_extended import (
 )
 from app.configs.database import db
 from sqlalchemy.orm.session import Session
-import re
 
 from app.models.company_model import Company
 from app.models.sector_model import Sector
 
 from app.models.employee_model import Employee
 
-import re
 
 session: Session = db.session
 
@@ -50,56 +45,78 @@ def post_employee():
 
     current_user = get_jwt_identity()
 
-    if current_user["type"] != "company":
-        return {"error": "access denied"}, HTTPStatus.BAD_REQUEST
-
-    data = request.get_json()
-
-    data["company_id"] = current_user["id"]
-
-    for value in data.values():
-        if type(value) != type("string"):
-            return {
-                "error": "All fields must be on string format"
-            }, HTTPStatus.BAD_REQUEST
-
-    default_keys = ["name", "email", "phone", "sector_id", "password"]
-
-    for key in default_keys:
-        if key not in data.keys():
-            return {
-                "error": f"Incomplete request, check {key} field"
-            }, HTTPStatus.BAD_REQUES
     try:
-        employee = Employee(**data)
 
-        db.session.add(employee)
-        db.session.commit()
+        if current_user["type"] != "company":
+            raise BadRequest(descprition={"error": "access denied"})
+
+        data = request.get_json()
+
+        sector_name = data.pop('sector')
+        company_id = current_user["id"]
+
+        sector: Sector = (
+                session.query(Sector)
+                .filter_by(name=sector_name)
+                .first_or_404(description={"error": "category doesn't exist"})
+            )
+
+        company: Company = (
+                session.query(Company)
+                .get_or_404(company_id,description={"error": "category doesn't exist"})
+            )
+
+        valid_data = Employee.check_fields(data)
+
+        employee = Employee(**valid_data)
+
+        sector.employees.append(employee)
+        company.employees.append(employee)
+
+        session.add(employee)
+        session.commit()
+
+        return jsonify(employee), HTTPStatus.CREATED
 
     except BadRequest as e:
-        return {str(e.description)}, HTTPStatus.BAD_REQUEST
+        return e.description, HTTPStatus.BAD_REQUEST
 
     except IntegrityError:
         return {"error": "user already registred"}, HTTPStatus.CONFLICT
 
-    return jsonify(employee), HTTPStatus.CREATED
+
 
 
 @jwt_required()
 def patch_employee(email):
     current_user = get_jwt_identity()
 
-    if current_user["type"] != "company":
-        return {"error": "access denied"}, HTTPStatus.UNAUTHORIZED
-
     try:
+        if current_user["type"] != "company":
+            raise Unauthorized
+
+        current_company = session.query(Company).get(current_user["id"])
+
+        current_employee = session.query(Employee).filter_by(email=email).first_or_404()
+
+        if current_employee not in current_company.employees:
+            raise Unauthorized
+
         data = request.get_json()
 
-        columns = ["name", "phone"]
+        valid_data = Employee.check_data_for_update(data)
+        
+        if "category" in data:
+            sector_name = data.pop('sector')
+            current_employee.sector_id = None
 
-        valid_data = {item: data[item] for item in data if item in columns}
+            sector: Sector = (
+                session.query(Sector)
+                .filter_by(name=sector_name)
+                .first_or_404(description={"error": "category doesn't exist"})
+            )
 
-        current_employee = session.query(Employee).get(email)
+            sector.append(current_employee)
 
         for key, value in valid_data.items():
             setattr(current_employee, key, value)
@@ -108,46 +125,70 @@ def patch_employee(email):
         session.commit()
 
         return jsonify(current_employee), HTTPStatus.OK
+
     except BadRequest as e:
-        return {str(e.description)}, HTTPStatus.BAD_REQUEST
+        return e.description, HTTPStatus.BAD_REQUEST
+
     except NotFound:
         session.rollback()
         return {"error": "employee not found!"}, HTTPStatus.NOT_FOUND
+
+    except Unauthorized:
+        return {"error": "access denied"}, HTTPStatus.UNAUTHORIZED
 
 
 @jwt_required()
 def delete_employee(email):
     current_user = get_jwt_identity()
 
-    if current_user["type"] != "company":
-        return {"error": "access denied"}, HTTPStatus.BAD_REQUEST
-
     try:
-        current_employee = session.query(Employee).get(email)
+        if current_user["type"] != "company":
+            raise Unauthorized
+
+        current_company = session.query(Company).get(current_user["id"])
+
+        current_employee = session.query(Employee).filter_by(email=email).first_or_404()
+
+        if current_employee not in current_company.employees:
+            raise Unauthorized
 
         session.delete(current_employee)
 
         session.commit()
 
         return {}, HTTPStatus.NO_CONTENT
-    except:
+
+    except NotFound:
         session.rollback()
-        return {"error": "Not Found"}, HTTPStatus.NOT_FOUND
+        return {"error": "employee not found!"}, HTTPStatus.NOT_FOUND
+
+    except Unauthorized:
+        return {"error": "access denied"}, HTTPStatus.UNAUTHORIZED
 
 
 @jwt_required()
 def find_employees(email):
     try:
-        employee = session.query(Employee).filter_by(email=email).first_or_404()
         current_user = get_jwt_identity()
 
         if current_user["type"] != "company":
-            return {"error": "access denied"}, HTTPStatus.BAD_REQUEST
+            raise Unauthorized
+        
+        current_company = session.query(Company).get(current_user["id"])
 
+        employee = session.query(Employee).filter_by(email=email).first_or_404()
+
+        if employee not in current_company.employees:
+            raise Unauthorized
+        
         return jsonify(employee), HTTPStatus.OK
 
     except NotFound:
-        return {"error": "no data found"}
+        session.rollback()
+        return {"error": "employee not found!"}, HTTPStatus.NOT_FOUND
+
+    except Unauthorized:
+        return {"error": "access denied"}, HTTPStatus.UNAUTHORIZED
 
 
 def employee_login():

@@ -78,3 +78,25 @@ class Employee(db.Model):
         if not validated_phone:
             raise BadRequest(description={"error": "this no a valid phone number"})
         return phone_for_validate
+
+    @staticmethod
+    def check_fields(data):
+        default_keys = ["name", "email", "phone", "password"]
+
+        valid_data = {item: data[item] for item in data if item in default_keys}
+
+        for key in default_keys:
+            if key not in valid_data.keys():
+                raise BadRequest(
+                    description={"error": f"Incomplete request, check {key} field"}
+                )
+        
+        return valid_data
+
+    @staticmethod
+    def check_data_for_update(data):
+        update_fields = ["name", "phone", "sector"]
+
+        valid_data = {item: data[item] for item in data if item in update_fields}
+
+        return valid_data
