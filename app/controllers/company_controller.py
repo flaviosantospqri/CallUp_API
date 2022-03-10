@@ -10,7 +10,6 @@ from werkzeug.exceptions import BadRequest, Unauthorized, NotFound
 from flask_mail import Message, Mail
 from pdfkit import from_string
 from os import getenv
-from ipdb import set_trace
 
 
 session: Session = db.session
@@ -131,7 +130,7 @@ def send_pdf():
 
 
         company = Company.query.filter_by(email=current_user["email"]).first()
-        set_trace()
+
         company_calls = [call for employee in company.employees for call in employee.calls]
 
 
