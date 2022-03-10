@@ -75,24 +75,24 @@ class Provider(db.Model):
             raise BadRequest(description={"error": "this no a valid password"})
         return password_validate
 
+    @staticmethod
     def check_fields(data):
-        default_keys = ["name", "cnpj", "email", "password"]
+        default_keys = ["name", "cnpj", "email", "about", "type"]
+
+        valid_data = {item: data[item] for item in data if item in default_keys}
 
         for key in default_keys:
-            if key not in data.keys():
-                return {
-                    "error": f"Incomplete request, check {key} field"
-                }, HTTPStatus.BAD_REQUEST
-        for key in data.keys():
-            if key not in default_keys:
-                return {
-                    "error": f"Incomplete request, check {key} field"
-                }, HTTPStatus.BAD_REQUEST
+            if key not in valid_data.keys():
+                raise BadRequest(
+                    description={"error": f"Incomplete request, check {key} field"}
+                )
 
-    def check_data_update(data):
+        return valid_data
+
+    @staticmethod
+    def check_data_for_update(data):
         update_fields = ["name", "about"]
+
         valid_data = {item: data[item] for item in data if item in update_fields}
 
-        for key, value in valid_data.items():
-            setattr(data, key, value)
-        return data
+        return valid_data

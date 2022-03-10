@@ -43,9 +43,7 @@ def patch_provider():
             id=token_user["id"]
         ).first_or_404()
 
-        allowed_columns = ["name", "about"]
-
-        valid_data = {item: data[item] for item in data if item in allowed_columns}
+        valid_data = Provider.check_data_for_update(data)
 
         for key, value in valid_data.items():
             setattr(provider, key, value)
@@ -70,15 +68,6 @@ def create_provider():
     data = request.get_json()
 
     Provider.check_fields(data)
-
-    password_regex = re.compile(
-        r"^(((?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%<^&*?])[a-zA-Z0-9!@#$%<^&*?]{8,})|([a-zA-Z]+([- .,_][a-zA-Z]+){4,}))$"
-    )
-    validate_password = re.fullmatch(password_regex, data["password"])
-    if not validate_password:
-        return {
-            "error": "Invalid password format. A good password should be at least 8 characters long: letters, numbers and special characters. Example: Potato1@"
-        }, HTTPStatus.BAD_REQUEST
 
     try:
         provider = Provider(**data)
