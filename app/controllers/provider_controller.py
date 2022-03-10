@@ -1,10 +1,5 @@
 from flask import jsonify, request
 from http import HTTPStatus
-from app.exc.provider_exc import (
-    CnpjFormatInvalidError,
-    EmailFormatInvalidError,
-    PasswordFormatinvalidError,
-)
 from app.models.provider_model import Provider
 from werkzeug.exceptions import NotFound, Unauthorized
 from sqlalchemy.orm.exc import UnmappedInstanceError
@@ -12,6 +7,7 @@ from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identi
 from app.configs.database import db
 from sqlalchemy.exc import IntegrityError
 import re
+from werkzeug.exceptions import BadRequest
 
 
 def get_providers():
@@ -75,11 +71,15 @@ def create_provider():
 
     Provider.check_fields(data)
 
-    password_regex = re.compile(r"^(((?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%<^&*?])[a-zA-Z0-9!@#$%<^&*?]{8,})|([a-zA-Z]+([- .,_][a-zA-Z]+){4,}))$")
-    validate_password = re.fullmatch(password_regex, data['password'])
+    password_regex = re.compile(
+        r"^(((?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%<^&*?])[a-zA-Z0-9!@#$%<^&*?]{8,})|([a-zA-Z]+([- .,_][a-zA-Z]+){4,}))$"
+    )
+    validate_password = re.fullmatch(password_regex, data["password"])
     if not validate_password:
-        return {"error": "Invalid password format. A good password should be at least 8 characters long: letters, numbers and special characters. Example: Potato1@"}, HTTPStatus.BAD_REQUEST
-    
+        return {
+            "error": "Invalid password format. A good password should be at least 8 characters long: letters, numbers and special characters. Example: Potato1@"
+        }, HTTPStatus.BAD_REQUEST
+
     try:
         provider = Provider(**data)
         session.add(provider)
@@ -88,18 +88,8 @@ def create_provider():
     except IntegrityError:
         return {"error": f"Provider already registred"}, HTTPStatus.CONFLICT
 
-    except CnpjFormatInvalidError:
-        return {"error": "CNPJ format invalid. Format valid 00.000.000/0000-00 or 00000000000000"}, HTTPStatus.BAD_REQUEST
-
-
-    except EmailFormatInvalidError:
-        return {"error": "Email format invalid. Format valid example@mail.com"}, HTTPStatus.BAD_REQUEST
-
-    except PasswordFormatinvalidError:
-        return {"error": "Password format invalid. Use at least aA@1, examplo Batat@1"}, HTTPStatus.BAD_REQUEST
-
-
-
+    except BadRequest as e:
+        return {str(e.description)}, HTTPStatus.BAD_REQUEST
     return jsonify(provider), HTTPStatus.CREATED
 
 
@@ -116,11 +106,10 @@ def login_provider():
         token = create_access_token(provider)
 
         return {"token": token}, HTTPStatus.OK
-    
+
     except Unauthorized:
 
         return {"error": "E-mail and/or password incorrect."}, HTTPStatus.UNAUTHORIZED
-
 
 
 @jwt_required()

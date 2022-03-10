@@ -7,8 +7,6 @@ from sqlalchemy.dialects.postgresql import UUID
 from uuid import uuid4
 import re
 from werkzeug.exceptions import BadRequest
-from app.exc.provider_exc import EmailFormatInvalidError, PhoneFormatInvalidError
-
 
 
 @dataclass
@@ -43,15 +41,15 @@ class Employee(db.Model):
 
     @password.setter
     def password(self, password_hash):
-      
+
         password_regex = re.compile(
-        r"^(((?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%<^&*?])[a-zA-Z0-9!@#$%<^&*?]{8,})|([a-zA-Z]+([- .,_][a-zA-Z]+){4,}))$"
+            r"^(((?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%<^&*?])[a-zA-Z0-9!@#$%<^&*?]{8,})|([a-zA-Z]+([- .,_][a-zA-Z]+){4,}))$"
         )
-        validate_password = re.fullmatch(password_regex, data["password"])
-        
+        validate_password = re.fullmatch(password_regex, password_hash)
+
         if not validate_password:
-          raise BadRequest(description={"error": "Wrong password format"})
-      
+            raise BadRequest(description={"error": "Wrong password format"})
+
         self.password_hash = generate_password_hash(password_hash)
 
     def check_password(self, check_compare):

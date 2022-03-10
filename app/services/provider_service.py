@@ -1,11 +1,5 @@
 import re
 
-from app.exc.provider_exc import (
-    CnpjFormatInvalidError,
-    EmailFormatInvalidError,
-    PasswordFormatinvalidError,
-)
-
 
 def validate_email(email):
 

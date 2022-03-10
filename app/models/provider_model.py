@@ -7,7 +7,8 @@ from dataclasses import dataclass
 from uuid import uuid4
 from http import HTTPStatus
 import re
-from app.exc.provider_exc import CnpjFormatInvalidError, EmailFormatInvalidError, PasswordFormatinvalidError
+from werkzeug.exceptions import BadRequest
+
 
 @dataclass
 class Provider(db.Model):
@@ -41,44 +42,52 @@ class Provider(db.Model):
     def password_check(self, password_to_compare):
         return check_password_hash(self.password_hash, password_to_compare)
 
-
     @validates("email")
     def validate_email(self, _, email_validate):
-        email_regex = re.compile(r"^[a-zA-Z0-9._-]+@[a-zA-Z0-9]+\.[a-zA-Z\.a-zA-Z]{1,3}\.?[a-zA-Z\.a-zA-Z]{1,3}?$")
+        email_regex = re.compile(
+            r"^[a-zA-Z0-9._-]+@[a-zA-Z0-9]+\.[a-zA-Z\.a-zA-Z]{1,3}\.?[a-zA-Z\.a-zA-Z]{1,3}?$"
+        )
 
         if not re.fullmatch(email_regex, email_validate):
-            raise EmailFormatInvalidError
+            raise BadRequest(description={"error": "this no a valid e-mail"})
         return email_validate.lower()
 
     @validates("cnpj")
     def validate_cnpj(self, _, cnpj_validate):
-        cnpj_regex = re.compile(r"([0-9]{2}[\.]?[0-9]{3}[\.]?[0-9]{3}[\/]?[0-9]{4}[-]?[0-9]{2})")
+        cnpj_regex = re.compile(
+            r"([0-9]{2}[\.]?[0-9]{3}[\.]?[0-9]{3}[\/]?[0-9]{4}[-]?[0-9]{2})"
+        )
 
         if not re.fullmatch(cnpj_regex, cnpj_validate):
-            raise CnpjFormatInvalidError
+            raise BadRequest(description={"error": "this no a valid cnpj"})
         return cnpj_validate
 
-
-    @validates('name')
+    @validates("name")
     def normalize_name(self, _, name_normalize):
         return name_normalize.title()
-        
-    @validates('password')
+
+    @validates("password")
     def validate_password(self, _, password_validate):
-        password_regex = re.compile(r"([0-9]{2}[\.]?[0-9]{3}[\.]?[0-9]{3}[\/]?[0-9]{4}[-]?[0-9]{2})")
+        password_regex = re.compile(
+            r"([0-9]{2}[\.]?[0-9]{3}[\.]?[0-9]{3}[\/]?[0-9]{4}[-]?[0-9]{2})"
+        )
         if not re.fullmatch(password_regex, password_validate):
-            raise PasswordFormatinvalidError
+            raise BadRequest(description={"error": "this no a valid password"})
         return password_validate
 
     def check_fields(data):
-        default_keys = ["name", "cnpj", "email","password"]
+        default_keys = ["name", "cnpj", "email", "password"]
 
         for key in default_keys:
             if key not in data.keys():
-                return {"error": f"Incomplete request, check {key} field"}, HTTPStatus.BAD_REQUEST
+                return {
+                    "error": f"Incomplete request, check {key} field"
+                }, HTTPStatus.BAD_REQUEST
         for key in data.keys():
             if key not in default_keys:
-                return {"error": f"Incomplete request, check {key} field"}, HTTPStatus.BAD_REQUEST
+                return {
+                    "error": f"Incomplete request, check {key} field"
+                }, HTTPStatus.BAD_REQUEST
 
     def check_data_update(data):
         update_fields = ["name", "about"]
