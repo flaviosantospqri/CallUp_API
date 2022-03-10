@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from sqlalchemy.dialects.postgresql import UUID
 from uuid import uuid4
 import re
-
+from werkzeug.exceptions import BadRequest
 from app.exc.provider_exc import EmailFormatInvalidError, PhoneFormatInvalidError
 
 
@@ -56,15 +56,15 @@ class Employee(db.Model):
         )
         validated_email = re.fullmatch(email_regex, email_for_validate)
         if not validated_email:
-            raise EmailFormatInvalidError
+            raise BadRequest(description={"error": "this no a valid e-mail"})
         return email_for_validate.lower()
 
     @validates("phone")
-    def validate_email(self, key, phone_for_validate):
+    def validate_phone(self, key, phone_for_validate):
         phone_regex = re.compile(
             r"^(([1-9]{2})[9]{1}[0-9]{4}-[0-9]{4})|(([1-9]{2})[1-9]{1}[0-9]{3}-[0-9]{4})$"
         )
         validated_phone = re.fullmatch(phone_regex, phone_for_validate)
         if not validated_phone:
-            raise PhoneFormatInvalidError
+            raise BadRequest(description={"error": "this no a valid phone number"})
         return phone_for_validate
