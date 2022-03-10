@@ -1,5 +1,5 @@
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
-from werkzeug.exceptions import NotFound, Unauthorized
+from werkzeug.exceptions import NotFound, Unauthorized, BadRequest
 from sqlalchemy.orm.exc import UnmappedInstanceError
 from flask import request, jsonify
 from app.models.call_model import Call
@@ -21,22 +21,25 @@ def get_proposals():
 
 @jwt_required()
 def get_proposal_accepted():
-    current_user = get_jwt_identity()
+    try:
+        current_user = get_jwt_identity()
 
-    if current_user["type"] != "provider":
-        return {"error": "acess denied"}, HTTPStatus.UNAUTHORIZED
+        if current_user["type"] != "provider":
+            return {"error": "acess denied"}, HTTPStatus.UNAUTHORIZED
 
-    call_list = Call.query.all()
-    proposals_list = Proposal.query.filter_by(id=current_user["id"])
+        call_list = Call.query.all()
+        proposals_list = Proposal.query.filter_by(id=current_user["id"])
 
-    final_list = []
+        final_list = []
 
-    for call in call_list:
-        if call.selected_proposal != None:
-            for proposal in proposals_list:
-                if call.selected_proposal == proposal.id:
-                    final_list.append({"call": call, "proposal": proposal})
-    return jsonify(final_list), HTTPStatus.OK
+        for call in call_list:
+            if call.selected_proposal != None:
+                for proposal in proposals_list:
+                    if call.selected_proposal == proposal.id:
+                        final_list.append({"call": call, "proposal": proposal})
+        return jsonify(final_list), HTTPStatus.OK
+    except BadRequest as e:
+        return {str(e.description)}, HTTPStatus.BAD_REQUEST
 
 
 @jwt_required()
@@ -69,6 +72,9 @@ def create_proposal():
 
         session.add(proposal)
         session.commit()
+
+    except BadRequest as e:
+        return {str(e.description)}, HTTPStatus.BAD_REQUEST
     except IntegrityError:
         return {"error": "Proposal already registred"}, HTTPStatus.CONFLICT
 
@@ -100,8 +106,9 @@ def update_proposal(proposal_id):
 
         return jsonify(proposal), HTTPStatus.OK
 
+    except BadRequest as e:
+        return {str(e.description)}, HTTPStatus.BAD_REQUEST
     except NotFound:
-
         return {"error": "no data found"}, HTTPStatus.NOT_FOUND
 
 
@@ -116,6 +123,9 @@ def delete_proposal(proposal_id):
         session.commit()
 
         return "", HTTPStatus.OK
-
+    except BadRequest as e:
+        return {str(e.description)}, HTTPStatus.BAD_REQUEST
     except UnmappedInstanceError:
-        return {"error": f"Proposal {proposal['id']} do not found"}, HTTPStatus.NOT_FOUND
+        return {
+            "error": f"Proposal {proposal['id']} do not found"
+        }, HTTPStatus.NOT_FOUND
