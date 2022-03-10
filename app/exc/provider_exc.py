@@ -1,14 +1,13 @@
-class CnpjFormatInvalidError(Exception):
+from werkzeug.exceptions import BadRequest
+
+
+class CnpjFormatInvalidError(BadRequest):
     ...
 
 
-class PhoneFormatInvalidError(Exception):
+class EmailFormatInvalidError(BadRequest):
     ...
 
 
-class EmailFormatInvalidError(Exception):
-    ...
-
-
-class PasswordFormatinvalidError(Exception):
+class PasswordFormatinvalidError(BadRequest):
     ...

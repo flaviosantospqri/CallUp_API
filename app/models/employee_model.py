@@ -1,5 +1,5 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship, backref, validates
+from sqlalchemy import Column, String, ForeignKey
 from werkzeug.security import check_password_hash, generate_password_hash
 from app.configs.database import db
 from dataclasses import dataclass
@@ -10,6 +10,7 @@ from werkzeug.exceptions import BadRequest
 from app.exc.provider_exc import EmailFormatInvalidError, PhoneFormatInvalidError
 
 
+
 @dataclass
 class Employee(db.Model):
     id: int
@@ -18,16 +19,18 @@ class Employee(db.Model):
     sector_id: int
     phone: str
     email: str
+    type: str
 
     __tablename__ = "employees"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     name = Column(String(127), nullable=False, unique=True)
-    company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"), nullable=False)
-    sector_id = Column(UUID(as_uuid=True), ForeignKey("sectors.id"), nullable=False)
+    company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"))
+    sector_id = Column(UUID(as_uuid=True), ForeignKey("sectors.id"))
     phone = Column(String(255))
     email = Column(String(255), unique=True, nullable=False)
     password_hash = Column(String(511), nullable=False)
+    type = Column(String, default="employee")
 
     calls = relationship("Call", backref=backref("employee", uselist=False))
     providers = relationship(
@@ -40,6 +43,15 @@ class Employee(db.Model):
 
     @password.setter
     def password(self, password_hash):
+      
+        password_regex = re.compile(
+        r"^(((?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%<^&*?])[a-zA-Z0-9!@#$%<^&*?]{8,})|([a-zA-Z]+([- .,_][a-zA-Z]+){4,}))$"
+        )
+        validate_password = re.fullmatch(password_regex, data["password"])
+        
+        if not validate_password:
+          raise BadRequest(description={"error": "Wrong password format"})
+      
         self.password_hash = generate_password_hash(password_hash)
 
     def check_password(self, check_compare):

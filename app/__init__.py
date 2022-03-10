@@ -1,4 +1,4 @@
-from app.configs import database, migrations, jwt_auth
+from app.configs import database, migrations, jwt_auth, email
 from flask import Flask
 from app import routes
 

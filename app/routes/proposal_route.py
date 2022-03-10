@@ -1,10 +1,10 @@
 from flask import Blueprint
 from app.controllers import proposal_controller
 
-bp = Blueprint("proposal", __name__, url_prefix="/proposal")
+bp = Blueprint("proposal", __name__, url_prefix="/proposals")
 
 bp.get("")(proposal_controller.get_proposals)
-bp.get("")(proposal_controller.get_proposal_accepted)
+bp.get("/accepted")(proposal_controller.get_proposal_accepted)
 
 
 bp.post("")(proposal_controller.create_proposal)
