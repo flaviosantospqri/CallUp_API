@@ -12,6 +12,7 @@ engine = create_engine(getenv("DB_URI"))
 Session = sessionmaker(bind=engine)
 session: Session = Session()
 
+
 def gener_data_sector():
 
     governing = {"name": "Governing"}
@@ -160,13 +161,14 @@ def gener_data_subcategories():
             safe_browsing,
             evaluation_of_services_performed,
         ]
-        
+
         for element in data:
             value_element = SubCategory(**element)
             session.add(value_element)
             session.commit()
     except:
         {"message": "categories not exists"}
+
 
 gener_data_sector()
 gener_data_categories()

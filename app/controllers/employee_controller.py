@@ -3,7 +3,7 @@ from email.policy import default
 from sqlite3 import IntegrityError
 from flask import request, jsonify, session
 from http import HTTPStatus
-from werkzeug.exceptions import NotFound
+from werkzeug.exceptions import NotFound, Unauthorized
 from turtle import ht
 from flask_jwt_extended import (
     jwt_required,
@@ -32,13 +32,16 @@ def get_employees():
         all_employees = session.query(Employee).all()
         current_user = get_jwt_identity()
 
-        if current_user.type == "employee":
-            return {"error": "access denied"}, HTTPStatus.UNAUTHORIZED
+        if current_user["type"] != "company":
+            raise Unauthorized
 
-        if all_employees:
-            return jsonify(all_employees), HTTPStatus.OK
+        return jsonify(all_employees), HTTPStatus.OK
+
     except NotFound:
         return {"error": "no data found"}, HTTPStatus.NOT_FOUND
+
+    except Unauthorized:
+        return {"error": "access denied"}, HTTPStatus.UNAUTHORIZED
 
 
 @jwt_required()
@@ -46,12 +49,12 @@ def post_employee():
 
     current_user = get_jwt_identity()
 
-    if current_user.type != "company":
+    if current_user["type"] != "company":
         return {"error": "access denied"}, HTTPStatus.BAD_REQUEST
 
     data = request.get_json()
 
-    data["company_id"] = current_user.id
+    data["company_id"] = current_user["id"]
 
     for value in data.values():
         if type(value) != type("string"):
@@ -59,7 +62,7 @@ def post_employee():
                 "error": "All fields must be on string format"
             }, HTTPStatus.BAD_REQUEST
 
-    default_keys = ["name", "email", "phone", "sector"]
+    default_keys = ["name", "email", "phone", "sector_id", "password"]
 
     for key in default_keys:
         if key not in data.keys():
@@ -103,7 +106,7 @@ def post_employee():
 def patch_employee(email):
     current_user = get_jwt_identity()
 
-    if current_user.type != "company":
+    if current_user["type"] != "company":
         return {"error": "access denied"}, HTTPStatus.UNAUTHORIZED
     default = (
         "^(([1-9]{2})[9]{1}[0-9]{4}-[0-9]{4})|(([1-9]{2})[1-9]{1}[0-9]{3}-[0-9]{4})$"
@@ -132,14 +135,14 @@ def patch_employee(email):
         return jsonify(current_employee), HTTPStatus.OK
     except NotFound:
         session.rollback()
-        return {"msg": "employee not found!"}, HTTPStatus.NOT_FOUND
+        return {"error": "employee not found!"}, HTTPStatus.NOT_FOUND
 
 
 @jwt_required()
 def delete_employee(email):
     current_user = get_jwt_identity()
 
-    if current_user.type != "company":
+    if current_user["type"] != "company":
         return {"error": "access denied"}, HTTPStatus.BAD_REQUEST
 
     try:
@@ -152,32 +155,36 @@ def delete_employee(email):
         return {}, HTTPStatus.NO_CONTENT
     except:
         session.rollback()
-        return {"msg": "Not Found"}, HTTPStatus.NOT_FOUND
+        return {"error": "Not Found"}, HTTPStatus.NOT_FOUND
 
 
 @jwt_required()
 def find_employees(email):
     try:
-        employee = session.query(Employee).filter_by(email=email).first()
+        employee = session.query(Employee).filter_by(email=email).first_or_404()
         current_user = get_jwt_identity()
 
-        if current_user.type != "company":
+        if current_user["type"] != "company":
             return {"error": "access denied"}, HTTPStatus.BAD_REQUEST
 
-        if employee:
-            return jsonify(employee), HTTPStatus.OK
-    except:
+        return jsonify(employee), HTTPStatus.OK
+
+    except NotFound:
         return {"error": "no data found"}
 
 
 def employee_login():
     data = request.get_json()
+    try:
 
-    employee: Employee = Employee.query.filter_by(email=data["email"]).first()
+        employee: Employee = Employee.query.filter_by(email=data["email"]).first()
 
-    if not employee or not employee.check_password(data["password"]):
+        if not employee or not employee.check_password(data["password"]):
+            raise Unauthorized
+
+        token = create_access_token(employee)
+
+        return {"access_token": token}, HTTPStatus.ok
+
+    except Unauthorized:
         return {"error": "E-mail and/or password incorrect."}, HTTPStatus.UNAUTHORIZED
-
-    token = create_access_token(employee)
-
-    return {"access_token": token}, HTTPStatus.ok

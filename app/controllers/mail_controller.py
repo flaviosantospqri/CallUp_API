@@ -4,6 +4,7 @@ from flask_mail import Message, Mail
 from os import getenv
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
+
 @jwt_required()
 def send_mail():
     mail: Mail = current_app.mail
