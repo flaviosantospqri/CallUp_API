@@ -1,6 +1,10 @@
 from flask import jsonify, request
 from http import HTTPStatus
-from app.exc.provider_exc import CnpjFormatInvalidError, EmailFormatInvalidError, PasswordFormatinvalidError
+from app.exc.provider_exc import (
+    CnpjFormatInvalidError,
+    EmailFormatInvalidError,
+    PasswordFormatinvalidError,
+)
 from app.models.provider_model import Provider
 from werkzeug.exceptions import NotFound, Unauthorized
 from sqlalchemy.orm.exc import UnmappedInstanceError
@@ -9,39 +13,41 @@ from app.configs.database import db
 from sqlalchemy.exc import IntegrityError
 import re
 
+
 def get_providers():
     providers = Provider.query.all()
 
-    if not providers:
-        return {"error": "no data found"}, HTTPStatus.NOT_FOUND
-
     return jsonify(providers), HTTPStatus.OK
 
-def get_provider_by_cnpj(provider_cnpj):
+
+def get_provider_by_id(provider_id):
     try:
-        provider = Provider.query.filter_by(cnpj=provider_cnpj).first_or_404()
+        provider = Provider.query.filter_by(cidnpj=provider_id).first_or_404()
 
         return jsonify(provider), HTTPStatus.OK
 
     except NotFound:
 
-        return {"error": f"no provider with the CNPJ {provider_cnpj} found"}, HTTPStatus.NOT_FOUND
+        return {"error": "no provider found"}, HTTPStatus.NOT_FOUND
+
 
 @jwt_required()
 def patch_provider():
 
     token_user = get_jwt_identity()
 
-    if token_user.type != 'provider':
-        return {"error": "access denied"}, HTTPStatus.BAD_REQUEST
+    if token_user["type"] != "provider":
+        raise Unauthorized
 
     try:
 
         data = request.get_json()
 
-        provider: Provider = Provider.query.filter_by(cnpj=token_user.cnpj).first_or_404()
+        provider: Provider = Provider.query.filter_by(
+            id=token_user["id"]
+        ).first_or_404()
 
-        allowed_columns = ['name', 'about']
+        allowed_columns = ["name", "about"]
 
         valid_data = {item: data[item] for item in data if item in allowed_columns}
 
@@ -62,7 +68,7 @@ def patch_provider():
         return {"error": "no data found"}, HTTPStatus.NOT_FOUND
 
 
-def post_register_provider():
+def create_provider():
     session = db.session
 
     data = request.get_json()
@@ -85,6 +91,7 @@ def post_register_provider():
     except CnpjFormatInvalidError:
         return {"error": "CNPJ format invalid. Format valid 00.000.000/0000-00 or 00000000000000"}, HTTPStatus.BAD_REQUEST
 
+
     except EmailFormatInvalidError:
         return {"error": "Email format invalid. Format valid example@mail.com"}, HTTPStatus.BAD_REQUEST
 
@@ -96,36 +103,39 @@ def post_register_provider():
     return jsonify(provider), HTTPStatus.CREATED
 
 
-def post_login_provider():
+def login_provider():
 
     data = request.get_json()
 
-    provider: Provider = (Provider.query.filter_by(email=data["email"])).first()
+    try:
+        provider: Provider = (Provider.query.filter_by(email=data["email"])).first()
 
-    if not provider:
-        return {"error": "Email not found"}
+        if not provider or not provider.password_check(data["password"]):
+            raise Unauthorized
 
-    if not provider.password_check(data["password"]):
-        return {"error": "Incorret password"}
+        token = create_access_token(provider)
 
-    token = create_access_token(provider)
+        return {"token": token}, HTTPStatus.OK
+    
+    except Unauthorized:
 
-    return {"token": token}, HTTPStatus.OK
+        return {"error": "E-mail and/or password incorrect."}, HTTPStatus.UNAUTHORIZED
+
 
 
 @jwt_required()
-def delete_provider(provider_id):
+def delete_provider():
 
     session = db.session
     current_provider = get_jwt_identity()
 
     try:
-        provider = Provider.query.get(provider_id)
-        
+        provider = Provider.query.get_or_404(current_provider["id"])
+
         session.delete(provider)
         session.commit()
 
         return "", HTTPStatus.OK
 
-    except UnmappedInstanceError:
-        return {"error": f"Provider {provider.id} do not found"}, HTTPStatus.NOT_FOUND 
+    except NotFound:
+        return {"error": "Provider not found"}, HTTPStatus.NOT_FOUND

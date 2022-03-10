@@ -1,7 +1,7 @@
 from flask import Blueprint
 from app.controllers import call_controller
 
-bp = Blueprint("call", __name__, url_prefix="/call")
+bp = Blueprint("call", __name__, url_prefix="/calls")
 
 bp.get("")(call_controller.get_call)
 bp.get("/<id>")(call_controller.get_call_id)

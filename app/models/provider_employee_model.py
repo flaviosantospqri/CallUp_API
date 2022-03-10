@@ -16,7 +16,6 @@ class ProviderEmployee(db.Model):
 
     __tablename__ = "providers_customers"
 
-
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    provider_id = Column(UUID(as_uuid=True), ForeignKey('providers.id'), nullable=False)
-    employee_id = Column(UUID(as_uuid=True), ForeignKey('employees.id'), nullable=False)
+    provider_id = Column(UUID(as_uuid=True), ForeignKey("providers.id"), nullable=False)
+    employee_id = Column(UUID(as_uuid=True), ForeignKey("employees.id"), nullable=False)
