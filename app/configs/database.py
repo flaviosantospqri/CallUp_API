@@ -21,6 +21,5 @@ def init_app(app: Flask):
         Call,
         Provider,
         ProviderEmployee,
-        Proposal
+        Proposal,
     )
-

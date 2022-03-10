@@ -1,91 +1,153 @@
-from flask import request, jsonify, current_app
-from app.exc.provider_exc import CnpjFormatInvalidError, EmailFormatInvalidError, PasswordFormatinvalidError
+from flask import request, jsonify, current_app, render_template
 from app.models.company_model import Company
-import re
 from http import HTTPStatus
 from sqlalchemy.exc import IntegrityError
 from app.configs.database import db
 from sqlalchemy.orm.session import Session
 from sqlalchemy.orm.exc import UnmappedInstanceError
-from flask_jwt_extended import (create_access_token, get_jwt_identity, jwt_required)
+from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
+from werkzeug.exceptions import BadRequest, Unauthorized, NotFound
+from flask_mail import Message, Mail
+from pdfkit import from_string
+from os import getenv
 
 session: Session = db.session
+
+
 @jwt_required()
 def get_company():
-   
-    company : Company = get_jwt_identity()
-    if not company:
-        return {"error": "no data found"}, HTTPStatus.NOT_FOUND
- 
-    return jsonify(company), HTTPStatus.OK
+
+    current_company = get_jwt_identity()
+    print(current_company)
+
+    company = session.query(Company).get(current_company["id"])
+    print()
+
+    return {
+        "id": company.id,
+        "name": company.name,
+        "cnpj": company.cnpj,
+        "address": company.address,
+        "email": company.email,
+        "employees": company.employees
+    }, HTTPStatus.OK
+
+
 
 def post_company():
     data = request.get_json()
-    
-    Company.check_fields(data)
-    
-    password_regex = re.compile(r"^(((?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%<^&*?])[a-zA-Z0-9!@#$%<^&*?]{8,})|([a-zA-Z]+([- .,_][a-zA-Z]+){4,}))$")
-    validate_password = re.fullmatch(password_regex, data['password'])
-    if not validate_password:
-        return {"error": "Wrong password format"}, HTTPStatus.BAD_REQUEST
-    
+
+    valid_data = Company.check_fields(data)
+
     try:
-        company =  Company(**data)
+        company = Company(**valid_data)
+
         session.add(company)
         session.commit()
+
+        return jsonify(company), HTTPStatus.CREATED
+
     except IntegrityError:
         return {"error": "company already registred"}, HTTPStatus.CONFLICT
-    except CnpjFormatInvalidError:
-        return {"error": "Wrong CNPJ format"}, HTTPStatus.BAD_REQUEST
-    except EmailFormatInvalidError:
-        return {"error": "Wrong email format"}, HTTPStatus.BAD_REQUEST
-    except PasswordFormatinvalidError:
-        return {"error": "Wrong password format"}, HTTPStatus.BAD_REQUEST
-    return jsonify(company), HTTPStatus.CREATED
+
+    except BadRequest as e:
+        return e.description, HTTPStatus.BAD_REQUEST
+
+
 @jwt_required()
 def update_company():
-    try: 
-        data = request.get_json()
-        # company = Company.query.filter_by(cnpj=data['cnpj']).first()
-        current_user = get_jwt_identity()
-        company = session.query(Company).filter_by(cnpj=current_user['cnpj']).first()
-       
-        update_fields = ["name", "address"] 
-        valid_data = {item: data[item] for item in data if item in update_fields}
-       
-        for key, value in valid_data.items():
-            setattr(company, key, value)
-        
-        session.add(company)
-        session.commit()
-    except:
-        session.rollback()
-        return {'msg': 'company not found!'}, HTTPStatus.NOT_FOUND
-        
-    return jsonify(company), HTTPStatus.OK
- 
-def delete_company():
     try:
         data = request.get_json()
+        current_user = get_jwt_identity()
 
-        company = Company.query.filter_by(cnpj=data['cnpj']).first()
+        if current_user["type"] != "company":
+            raise Unauthorized
+
+        company = session.query(Company).get_or_404(current_user["id"])
+
+        valid_data = Company.check_data_for_update(data)
+
+        for key, value in valid_data.items():
+            setattr(company, key, value)
+
+        session.add(company)
+        session.commit()
+
+        return jsonify(company), HTTPStatus.OK
+
+    except NotFound:
+        return {"error": "company not found!"}, HTTPStatus.NOT_FOUND
+
+    except Unauthorized:
+        return {"error": "access denied"}, HTTPStatus.BAD_REQUEST
+
+    
+
+@jwt_required()
+def delete_company():
+    try:
+        current_user = get_jwt_identity()
+
+        company = session.query(Company).get(current_user["id"])
 
         session.delete(company)
         session.commit()
 
         return "", HTTPStatus.OK
-    except UnmappedInstanceError:
-        return {"error": f"CNPJ: {data['cnpj']} do not found"}, HTTPStatus.NOT_FOUND
 
-    
+    except UnmappedInstanceError:
+        return {"error": "company not found!"}, HTTPStatus.NOT_FOUND
+
+
 def signin_company():
     data = request.get_json()
-    company: Company = Company.query.filter_by(email=data["email"]).first()
-    if not company:
-        return {"error": "email not found"}, HTTPStatus.NOT_FOUND
-    if not company.check_password(data["password"]):
-        return {"error": "email and password do not match"}, HTTPStatus.UNAUTHORIZED
+
+    try:
+        company: Company = Company.query.filter_by(email=data["email"]).first()
+
+        if not company or not company.check_password(data["password"]):
+            raise Unauthorized
+
+        token = create_access_token(company)
+
+        return {"token": token}, HTTPStatus.OK
     
-    token = create_access_token(company)
+    except Unauthorized:
+        return {"error": "E-mail and/or password incorrect."}, HTTPStatus.UNAUTHORIZED
+
+@jwt_required()
+def send_pdf():
+    try:
+        mail: Mail = current_app.mail
+
+        current_user = get_jwt_identity()
+
+        if current_user["type"] != "company":
+            raise Unauthorized
+
+
+        company = Company.query.filter_by(email=current_user.email).first()
+
+        company_calls = [call for employee in company["employees"] for call in employee["calls"]]
+
+
+        pdf = from_string(
+            render_template("pdf/template.html", name=company.name, calls=company_calls),
+            False,
+        )
+
+        msg = Message(
+            subject="Report",
+            sender=getenv("MAIL_USERNAME"),
+            recipients=[company.email],
+            html=render_template("email/template.html"),
+        )
+
+        msg.attach("report.pdf", "application/pdf", pdf)
+
+        mail.send(msg)
+
+        return {"stts": "ok"}, HTTPStatus.OK
     
-    return {"token": token}, HTTPStatus.OK
+    except Unauthorized:
+        return {"error": "access denied"}, HTTPStatus.BAD_REQUEST
