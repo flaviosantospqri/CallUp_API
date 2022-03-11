@@ -2,6 +2,7 @@ from sqlite3 import IntegrityError
 from app.models.call_model import Call
 from app.models.category_model import Category
 from app.models.employee_model import Employee
+from app.models.proposal_model import Proposal
 from app.models.subcategory_model import SubCategory
 from flask import request, jsonify
 from http import HTTPStatus
@@ -14,6 +15,8 @@ from flask_jwt_extended import (
 from app.configs.database import db
 from sqlalchemy.orm.session import Session
 from werkzeug.exceptions import Unauthorized, BadRequest, NotFound
+
+from app.services.call_service import relate_employee_provider
 
 session: Session = db.session
 
@@ -101,16 +104,19 @@ def update_call(id):
 
     data = request.get_json()
 
-    if current_user["type"] != "employee":
-        raise Unauthorized
-
     try:
+
+        if current_user["type"] != "employee":
+            raise Unauthorized
 
         valid_data = Call.check_data_for_update(data)
 
         current_call = Call.query.filter_by(id=id).first_or_404(
             description={"error": "call doesn't exist"}
         )
+
+        if current_call.employee_id != current_user["id"]:
+            raise Unauthorized
 
         if "category" in data:
             category_name = data.pop("categories")
@@ -131,7 +137,7 @@ def update_call(id):
             subcategory = (
                 session.query(SubCategory)
                 .filter_by(name=subcategory_name)
-                .first_or_404(description={"error": "category doesn't exist"})
+                .first_or_404(description={"error": "subcategory doesn't exist"})
             )
 
             subcategory.calls.append(current_call)
@@ -155,11 +161,14 @@ def update_call(id):
 def delete_call(id):
     current_user = get_jwt_identity()
 
-    if current_user["type"] != "employee":
-        raise Unauthorized
-
     try:
+        if current_user["type"] != "employee":
+            raise Unauthorized
+
         current_call = session.query(Call).get_or_404(id)
+
+        if current_call.employee_id != current_user["id"]:
+            raise Unauthorized
 
         session.delete(current_call)
         session.commit()
@@ -171,3 +180,59 @@ def delete_call(id):
 
     except Unauthorized:
         return {"error": "access denied"}, HTTPStatus.UNAUTHORIZED
+
+
+@jwt_required()
+def close_call(call_id):
+    current_user = get_jwt_identity()
+
+    data = request.get_json()
+
+    try:
+        if current_user["type"] != "employee":
+            raise Unauthorized(description={"error": "access denied"})
+
+        current_call: Call = session.query(Call).get_or_404(
+            call_id, description={"error": "proposal not found"}
+        )
+
+        if current_call.open == False:
+            raise Unauthorized(description={"error": "call already closed"})
+
+        if current_call.employee_id != current_user["id"]:
+            raise Unauthorized(description={"error": "access denied"})
+
+        proposal_id = data.pop("selected_proposal_id")
+
+        proposal: Proposal = session.query(Proposal).get_or_404(
+            proposal_id, description={"error": "proposal not found"}
+        )
+
+        if proposal.call_id != call_id:
+            raise BadRequest
+
+        current_call.open = False
+        current_call.selected_proposal_id = proposal_id
+
+        relate_employee_provider(proposal, current_user["id"])
+
+        session.add(current_call)
+        session.commit()
+
+        return current_call, HTTPStatus.OK
+
+    except KeyError:
+        return {
+            "error": "Incomplete request, check selected_proposal_id field"
+        }, HTTPStatus.BAD_REQUEST
+
+    except NotFound as e:
+        return e.description, HTTPStatus.NOT_FOUND
+
+    except Unauthorized as e:
+        return e.description, HTTPStatus.UNAUTHORIZED
+
+    except BadRequest:
+        return {
+            "error": "selected proposal doesn't belong to call"
+        }, HTTPStatus.BAD_REQUEST

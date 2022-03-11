@@ -1,5 +1,4 @@
-from sqlalchemy import Column, ForeignKey, String, Float, Integer
-import sqlalchemy
+from sqlalchemy import Column, ForeignKey, String, Float
 from sqlalchemy.dialects.postgresql import UUID
 from dataclasses import dataclass
 from werkzeug.exceptions import BadRequest
@@ -34,3 +33,25 @@ class Proposal(db.Model):
             raise BadRequest(description={"error": "description must be a string"})
 
         return description_validate
+
+    @staticmethod
+    def check_fields(data):
+        default_keys = ["price", "description"]
+
+        valid_data = {item: data[item] for item in data if item in default_keys}
+
+        for key in default_keys:
+            if key not in valid_data.keys():
+                raise BadRequest(
+                    description={"error": f"Incomplete request, check {key} field"}
+                )
+
+        return valid_data
+
+    @staticmethod
+    def check_data_for_update(data):
+        update_fields = ["price", "description"]
+
+        valid_data = {item: data[item] for item in data if item in update_fields}
+
+        return valid_data

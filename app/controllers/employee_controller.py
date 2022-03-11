@@ -52,19 +52,18 @@ def post_employee():
 
         data = request.get_json()
 
-        sector_name = data.pop('sector')
+        sector_name = data.pop("sector")
         company_id = current_user["id"]
 
         sector: Sector = (
-                session.query(Sector)
-                .filter_by(name=sector_name)
-                .first_or_404(description={"error": "category doesn't exist"})
-            )
+            session.query(Sector)
+            .filter_by(name=sector_name)
+            .first_or_404(description={"error": "sector doesn't exist"})
+        )
 
-        company: Company = (
-                session.query(Company)
-                .get_or_404(company_id,description={"error": "category doesn't exist"})
-            )
+        company: Company = session.query(Company).get_or_404(
+            company_id, description={"error": "company doesn't exist"}
+        )
 
         valid_data = Employee.check_fields(data)
 
@@ -85,8 +84,6 @@ def post_employee():
         return {"error": "user already registred"}, HTTPStatus.CONFLICT
 
 
-
-
 @jwt_required()
 def patch_employee(email):
     current_user = get_jwt_identity()
@@ -95,25 +92,25 @@ def patch_employee(email):
         if current_user["type"] != "company":
             raise Unauthorized
 
-        current_company = session.query(Company).get(current_user["id"])
+        current_employee: Employee = (
+            session.query(Employee).filter_by(email=email).first_or_404()
+        )
 
-        current_employee = session.query(Employee).filter_by(email=email).first_or_404()
-
-        if current_employee not in current_company.employees:
+        if current_employee.company_id != current_user["id"]:
             raise Unauthorized
 
         data = request.get_json()
 
         valid_data = Employee.check_data_for_update(data)
-        
+
         if "category" in data:
-            sector_name = data.pop('sector')
+            sector_name = data.pop("sector")
             current_employee.sector_id = None
 
             sector: Sector = (
                 session.query(Sector)
                 .filter_by(name=sector_name)
-                .first_or_404(description={"error": "category doesn't exist"})
+                .first_or_404(description={"error": "sector doesn't exist"})
             )
 
             sector.append(current_employee)
@@ -145,11 +142,9 @@ def delete_employee(email):
         if current_user["type"] != "company":
             raise Unauthorized
 
-        current_company = session.query(Company).get(current_user["id"])
-
         current_employee = session.query(Employee).filter_by(email=email).first_or_404()
 
-        if current_employee not in current_company.employees:
+        if current_employee.company_id != current_user["id"]:
             raise Unauthorized
 
         session.delete(current_employee)
@@ -173,14 +168,12 @@ def find_employees(email):
 
         if current_user["type"] != "company":
             raise Unauthorized
-        
-        current_company = session.query(Company).get(current_user["id"])
 
         employee = session.query(Employee).filter_by(email=email).first_or_404()
 
-        if employee not in current_company.employees:
+        if employee.company_id != current_user["id"]:
             raise Unauthorized
-        
+
         return jsonify(employee), HTTPStatus.OK
 
     except NotFound:

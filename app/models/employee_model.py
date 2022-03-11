@@ -90,7 +90,7 @@ class Employee(db.Model):
                 raise BadRequest(
                     description={"error": f"Incomplete request, check {key} field"}
                 )
-        
+
         return valid_data
 
     @staticmethod
