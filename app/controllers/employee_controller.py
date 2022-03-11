@@ -198,7 +198,7 @@ def employee_login():
 
         token = create_access_token(employee)
 
-        return {"access_token": token}, HTTPStatus.ok
+        return {"access_token": token}, HTTPStatus.OK
 
     except Unauthorized:
         return {"error": "E-mail and/or password incorrect."}, HTTPStatus.UNAUTHORIZED
