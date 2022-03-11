@@ -51,7 +51,7 @@ def get_call_id(id):
         return e.description, HTTPStatus.BAD_REQUEST
 
 
-@jwt_required
+@jwt_required()
 def post_call():
     try:
         current_user = get_jwt_identity()
@@ -62,16 +62,16 @@ def post_call():
 
         valid_data = Call.check_fields(data)
 
-        category_name = data.pop("category")
-        subcategory_name = data.pop("subcategory")
+        category_name = valid_data.pop("category")
+        subcategory_name = valid_data.pop("subcategory")
 
-        category = (
+        category: Category = (
             session.query(Category)
             .filter_by(name=category_name)
             .first_or_404(description={"error": "category doesn't exist"})
         )
 
-        subcategory = (
+        subcategory: SubCategory = (
             session.query(SubCategory)
             .filter_by(name=subcategory_name)
             .first_or_404(description={"error": "subcategory doesn't exist"})
@@ -81,12 +81,14 @@ def post_call():
 
         call = Call(**valid_data)
 
-        category.append(call)
-        subcategory.append(call)
-        employee.append(call)
+        category.calls.append(call)
+        subcategory.calls.append(call)
+        employee.calls.append(call)
 
         session.add(call)
         session.commit()
+
+        return jsonify(call), HTTPStatus.CREATED
 
     except IntegrityError:
         return {"error": "call already registred"}, HTTPStatus.CONFLICT
@@ -128,7 +130,7 @@ def update_call(id):
                 .first_or_404(description={"error": "category doesn't exist"})
             )
 
-            category.append(current_call)
+            category.calls.append(current_call)
 
         if "subcategory" in data:
             subcategory_name = data.pop("subcategory")

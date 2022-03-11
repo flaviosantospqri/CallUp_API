@@ -93,14 +93,17 @@ def patch_employee(email):
     current_user = get_jwt_identity()
 
     try:
-        if current_user["type"] != "company":
+        if current_user["type"] == "provider":
             raise Unauthorized
 
         current_employee: Employee = (
             session.query(Employee).filter_by(email=email).first_or_404()
         )
 
-        if current_employee.company_id != current_user["id"]:
+        if current_user["type"] == "company" and str(current_employee.company_id) != current_user["id"]:
+            raise Unauthorized
+
+        if current_user["type"] == "employee" and str(current_employee.id) != current_user["id"]:
             raise Unauthorized
 
         data = request.get_json()
@@ -117,7 +120,7 @@ def patch_employee(email):
                 .first_or_404(description={"error": "sector doesn't exist"})
             )
 
-            sector.append(current_employee)
+            sector.employees.append(current_employee)
 
         for key, value in valid_data.items():
             setattr(current_employee, key, value)
