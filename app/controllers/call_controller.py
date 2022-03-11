@@ -1,4 +1,4 @@
-from sqlite3 import IntegrityError
+from sqlalchemy.exc import IntegrityError
 from app.models.call_model import Call
 from app.models.category_model import Category
 from app.models.employee_model import Employee
@@ -115,7 +115,7 @@ def update_call(id):
             description={"error": "call doesn't exist"}
         )
 
-        if current_call.employee_id != current_user["id"]:
+        if str(current_call.employee_id) != current_user["id"]:
             raise Unauthorized
 
         if "category" in data:
@@ -167,7 +167,7 @@ def delete_call(id):
 
         current_call = session.query(Call).get_or_404(id)
 
-        if current_call.employee_id != current_user["id"]:
+        if str(current_call.employee_id) != current_user["id"]:
             raise Unauthorized
 
         session.delete(current_call)
@@ -199,7 +199,7 @@ def close_call(call_id):
         if current_call.open == False:
             raise Unauthorized(description={"error": "call already closed"})
 
-        if current_call.employee_id != current_user["id"]:
+        if str(current_call.employee_id) != current_user["id"]:
             raise Unauthorized(description={"error": "access denied"})
 
         proposal_id = data.pop("selected_proposal_id")
@@ -208,7 +208,7 @@ def close_call(call_id):
             proposal_id, description={"error": "proposal not found"}
         )
 
-        if proposal.call_id != call_id:
+        if str(proposal.call_id) != call_id:
             raise BadRequest
 
         current_call.open = False

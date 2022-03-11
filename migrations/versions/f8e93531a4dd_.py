@@ -143,10 +143,10 @@ def upgrade():
     )
     op.add_column(
         "calls",
-        sa.Column("selected_proposal", postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column("selected_proposal_id", postgresql.UUID(as_uuid=True), nullable=False),
     )
     op.create_foreign_key(
-        "fk_call_selected_proposal", "calls", "proposals", ["selected_proposal"], ["id"]
+        "fk_call_selected_proposal_id", "calls", "proposals", ["selected_proposal_id"], ["id"]
     )
     # ### end Alembic commands ###
 
