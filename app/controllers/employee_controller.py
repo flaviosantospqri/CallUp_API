@@ -110,8 +110,8 @@ def patch_employee(email):
 
         valid_data = Employee.check_data_for_update(data)
 
-        if "category" in data:
-            sector_name = data.pop("sector")
+        if "sector" in data:
+            sector_name = valid_data.pop("sector")
             current_employee.sector_id = None
 
             sector: Sector = (
