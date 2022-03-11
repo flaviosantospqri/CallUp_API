@@ -26,13 +26,14 @@ session: Session = db.session
 @jwt_required()
 def get_employees():
     try:
-        all_employees = session.query(Employee).all()
         current_user = get_jwt_identity()
 
         if current_user["type"] != "company":
             raise Unauthorized
 
-        return jsonify(all_employees), HTTPStatus.OK
+        company : Company = session.query(Company).get_or_404(current_user["id"])
+
+        return jsonify(company.employees), HTTPStatus.OK
 
     except NotFound:
         return {"error": "no data found"}, HTTPStatus.NOT_FOUND
