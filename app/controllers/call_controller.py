@@ -30,14 +30,14 @@ def get_call():
 
 
 @jwt_required()
-def get_call_id(id):
+def get_call_by_email(email):
     try:
         current_user = get_jwt_identity()
 
         if current_user["type"] == "provider":
             raise Unauthorized
 
-        employee = Employee.query.filter_by(id=id).first_or_404()
+        employee = Employee.query.filter_by(email=email).first_or_404()
 
         return jsonify(employee.calls), HTTPStatus.OK
 
@@ -121,7 +121,7 @@ def update_call(id):
             raise Unauthorized
 
         if "category" in data:
-            category_name = data.pop("categories")
+            category_name = valid_data.pop("categories")
             current_call.category_id = None
 
             category = (
@@ -133,7 +133,7 @@ def update_call(id):
             category.calls.append(current_call)
 
         if "subcategory" in data:
-            subcategory_name = data.pop("subcategory")
+            subcategory_name = valid_data.pop("subcategory")
             current_call.subcategory_id = None
 
             subcategory = (

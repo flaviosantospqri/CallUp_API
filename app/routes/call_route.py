@@ -4,7 +4,7 @@ from app.controllers import call_controller
 bp = Blueprint("call", __name__, url_prefix="/calls")
 
 bp.get("")(call_controller.get_call)
-bp.get("/<id>")(call_controller.get_call_id)
+bp.get("/<email>")(call_controller.get_call_by_email)
 
 bp.post("")(call_controller.post_call)
 
