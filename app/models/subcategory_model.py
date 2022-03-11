@@ -9,6 +9,7 @@ from dataclasses import dataclass
 
 @dataclass
 class SubCategory(db.Model):
+    id: str
     name: str
 
     __tablename__ = "subcategories"
