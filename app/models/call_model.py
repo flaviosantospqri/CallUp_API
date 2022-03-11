@@ -18,7 +18,6 @@ class Call(db.Model):
     id: UUID
     description: str
     open: bool
-    scheduling: str
     selected_proposal: Union[Proposal, None]
 
     __tablename__ = "calls"
@@ -30,7 +29,7 @@ class Call(db.Model):
     category_id = Column(UUID(as_uuid=True), ForeignKey("categories.id"))
     subcategory_id = Column(UUID(as_uuid=True), ForeignKey("subcategories.id"))
     employee_id = Column(UUID(as_uuid=True), ForeignKey("employees.id"))
-    selected_proposal_id = Column(UUID(as_uuid=True), ForeignKey("proposals.id", use_alter=True))
+    selected_proposal_id = Column(UUID(as_uuid=True), ForeignKey("proposals.id"))
 
     proposals = relationship(
         "Proposal",
@@ -56,9 +55,9 @@ class Call(db.Model):
         return description
 
     @validates("scheduling")
-    def verify_scheduling(self, key, description):
+    def verify_scheduling(self, key, date):
         try:
-            return datetime.strptime(description, "%d/%m/%Y %H:%M")
+            return datetime.strptime(date, "%d/%m/%Y %H:%M")
         except:
             raise BadRequest(
                 {
