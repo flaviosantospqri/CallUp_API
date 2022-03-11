@@ -1,4 +1,4 @@
-from sqlite3 import IntegrityError
+from sqlalchemy.exc import IntegrityError
 from flask import request, jsonify, session
 from http import HTTPStatus
 from werkzeug.exceptions import NotFound, Unauthorized
@@ -17,6 +17,7 @@ from app.models.company_model import Company
 from app.models.sector_model import Sector
 
 from app.models.employee_model import Employee
+
 
 
 session: Session = db.session
@@ -77,6 +78,9 @@ def post_employee():
 
         return jsonify(employee), HTTPStatus.CREATED
 
+    except NotFound as e:
+        return e.description, HTTPStatus.NOT_FOUND
+
     except BadRequest as e:
         return e.description, HTTPStatus.BAD_REQUEST
 
@@ -96,7 +100,7 @@ def patch_employee(email):
             session.query(Employee).filter_by(email=email).first_or_404()
         )
 
-        if current_employee.company_id != current_user["id"]:
+        if str(current_employee.company_id) != current_user["id"]:
             raise Unauthorized
 
         data = request.get_json()
@@ -144,7 +148,7 @@ def delete_employee(email):
 
         current_employee = session.query(Employee).filter_by(email=email).first_or_404()
 
-        if current_employee.company_id != current_user["id"]:
+        if str(current_employee.company_id) != current_user["id"]:
             raise Unauthorized
 
         session.delete(current_employee)
@@ -170,8 +174,7 @@ def find_employees(email):
             raise Unauthorized
 
         employee = session.query(Employee).filter_by(email=email).first_or_404()
-
-        if employee.company_id != current_user["id"]:
+        if str(employee.company_id) != current_user["id"]:
             raise Unauthorized
 
         return jsonify(employee), HTTPStatus.OK

@@ -104,7 +104,7 @@ def update_proposal(proposal_id):
 
         proposal: Proposal = Proposal.query.get_or_404(proposal_id)
 
-        if proposal.provider_id != current_user["id"]:
+        if str(proposal.provider_id) != current_user["id"]:
             raise Unauthorized
 
         valid_data = Proposal.check_data_for_update(data)
@@ -135,7 +135,7 @@ def delete_proposal(proposal_id):
 
         proposal: Proposal = Proposal.query.get_or_404(proposal_id)
 
-        if proposal.provider_id != current_user["id"]:
+        if str(proposal.provider_id) != current_user["id"]:
             raise Unauthorized
 
         session.delete(proposal)

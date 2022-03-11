@@ -12,7 +12,7 @@ import re
 
 @dataclass
 class Company(db.Model):
-    id: UUID
+    id: str
     name: str
     cnpj: str
     email: str

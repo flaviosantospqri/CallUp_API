@@ -30,7 +30,7 @@ class Call(db.Model):
     category_id = Column(UUID(as_uuid=True), ForeignKey("categories.id"))
     subcategory_id = Column(UUID(as_uuid=True), ForeignKey("subcategories.id"))
     employee_id = Column(UUID(as_uuid=True), ForeignKey("employees.id"))
-    selected_proposal_id = Column(UUID(as_uuid=True), ForeignKey("proposals.id"))
+    selected_proposal_id = Column(UUID(as_uuid=True), ForeignKey("proposals.id", use_alter=True))
 
     proposals = relationship(
         "Proposal",

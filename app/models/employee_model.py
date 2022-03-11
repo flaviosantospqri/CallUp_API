@@ -1,3 +1,4 @@
+from app.models.sector_model import Sector
 from sqlalchemy.orm import relationship, backref, validates
 from sqlalchemy import Column, String, ForeignKey
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -9,15 +10,17 @@ import re
 from werkzeug.exceptions import BadRequest
 
 
+
+
 @dataclass
 class Employee(db.Model):
     id: int
     name: str
     company_id: int
-    sector_id: int
     phone: str
     email: str
     type: str
+    sector: Sector
 
     __tablename__ = "employees"
 
@@ -34,6 +37,7 @@ class Employee(db.Model):
     providers = relationship(
         "Provider", secondary="providers_customers", backref="clients"
     )
+    sector = relationship("Sector", backref="employees", uselist=False)
 
     @property
     def password(self):
@@ -72,7 +76,7 @@ class Employee(db.Model):
     @validates("phone")
     def validate_phone(self, key, phone_for_validate):
         phone_regex = re.compile(
-            r"^(([1-9]{2})[9]{1}[0-9]{4}-[0-9]{4})|(([1-9]{2})[1-9]{1}[0-9]{3}-[0-9]{4})$"
+            r"^\([1-9]{2}\)[9]{0,1}[1-9]{1}[0-9]{3}\-[0-9]{4}$"
         )
         validated_phone = re.fullmatch(phone_regex, phone_for_validate)
         if not validated_phone:
