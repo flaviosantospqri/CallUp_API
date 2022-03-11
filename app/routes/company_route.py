@@ -12,5 +12,3 @@ bp.post("/login")(company_controller.signin_company)
 bp.patch("")(company_controller.update_company)
 
 bp.delete("")(company_controller.delete_company)
-
-

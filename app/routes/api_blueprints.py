@@ -22,4 +22,3 @@ bp_api.register_blueprint(bp_provider)
 bp_api.register_blueprint(bp_proposal)
 bp_api.register_blueprint(bp_company)
 bp_api.register_blueprint(bp_mail)
-

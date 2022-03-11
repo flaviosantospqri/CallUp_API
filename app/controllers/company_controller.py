@@ -19,10 +19,8 @@ session: Session = db.session
 def get_company():
 
     current_company = get_jwt_identity()
-    print(current_company)
 
     company = session.query(Company).get(current_company["id"])
-    print()
 
     return {
         "id": company.id,
@@ -30,9 +28,8 @@ def get_company():
         "cnpj": company.cnpj,
         "address": company.address,
         "email": company.email,
-        "employees": company.employees
+        "employees": company.employees,
     }, HTTPStatus.OK
-
 
 
 def post_company():
@@ -40,7 +37,7 @@ def post_company():
 
     try:
         valid_data = Company.check_fields(data)
-        
+
         company = Company(**valid_data)
 
         session.add(company)
@@ -55,7 +52,6 @@ def post_company():
         return e.description, HTTPStatus.BAD_REQUEST
 
 
-
 @jwt_required()
 def update_company():
     try:
@@ -68,7 +64,6 @@ def update_company():
         company = session.query(Company).get_or_404(current_user["id"])
 
         valid_data = Company.check_data_for_update(data)
-
 
         for key, value in valid_data.items():
             setattr(company, key, value)
@@ -101,7 +96,6 @@ def delete_company():
         return {"error": "company not found!"}, HTTPStatus.NOT_FOUND
 
 
-
 def signin_company():
     data = request.get_json()
 
@@ -114,9 +108,10 @@ def signin_company():
         token = create_access_token(company)
 
         return {"token": token}, HTTPStatus.OK
-    
+
     except Unauthorized:
         return {"error": "E-mail and/or password incorrect."}, HTTPStatus.UNAUTHORIZED
+
 
 @jwt_required()
 def send_pdf():
@@ -128,14 +123,16 @@ def send_pdf():
         if current_user["type"] != "company":
             raise Unauthorized
 
-
         company = Company.query.filter_by(email=current_user["email"]).first()
 
-        company_calls = [call for employee in company.employees for call in employee.calls]
-
+        company_calls = [
+            call for employee in company.employees for call in employee.calls
+        ]
 
         pdf = from_string(
-            render_template("pdf/template.html", name=company.name, calls=company_calls),
+            render_template(
+                "pdf/template.html", name=company.name, calls=company_calls
+            ),
             False,
         )
 
@@ -151,6 +148,6 @@ def send_pdf():
         mail.send(msg)
 
         return {"stts": "ok"}, HTTPStatus.OK
-    
+
     except Unauthorized:
         return {"error": "access denied"}, HTTPStatus.BAD_REQUEST

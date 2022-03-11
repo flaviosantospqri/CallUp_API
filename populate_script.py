@@ -60,7 +60,7 @@ def gener_data_subcategories():
         system_analysis = (
             session.query(Category).filter_by(name="System Analysis").first()
         )
-        print(system_analysis)
+
         performance_analysis = {
             "category_id": system_analysis.id,
             "name": "Performance Analysis",
@@ -70,7 +70,7 @@ def gener_data_subcategories():
             "name": "Feature Analysis",
         }
         error_analysis = {"category_id": system_analysis.id, "name": "Error Analysis"}
-        print(performance_analysis)
+
         networks = session.query(Category).filter_by(name="Networks").first()
         connection_failures = {
             "category_id": networks.id,
