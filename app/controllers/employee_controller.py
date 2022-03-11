@@ -100,7 +100,7 @@ def patch_employee(email):
             session.query(Employee).filter_by(email=email).first_or_404()
         )
 
-        if str(current_employee.company_id) != current_user["id"]:
+        if current_employee.company_id != current_user["id"]:
             raise Unauthorized
 
         data = request.get_json()
