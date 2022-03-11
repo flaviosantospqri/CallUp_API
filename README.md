@@ -722,3 +722,45 @@ Rotas que necessitam de autorização deve ser informado no cabeçalho da requis
   }
 ]
 ```
+
+<h3 align = "center"> Pegar todos as propostas aceitas pelas empresa feitas pelas prestadoras de serviço</h3>
+
+`GET /proposals - FORMATO DA REQUISIÇÃO`
+
+    Caso dê tudo certo, a resposta será assim:
+
+`GET /proposals - FORMATO DA RESPOSTA - STATUS 200`
+
+```json
+[]
+```
+
+<h3 align = "center"> Atualizar informações proposta por ID do chamado </h3>
+
+`PATCH /e0f3ed9a-8caf-4991-b8c5-4cf74b442f52 - FORMATO DA REQUISIÇÃO`
+
+```json
+{
+	"description": "Modem não funciona e agr ta apitando"
+}
+```
+    Caso dê tudo certo, a resposta será assim:
+
+`PATCH /e0f3ed9a-8caf-4991-b8c5-4cf74b442f52s - FORMATO DA RESPOSTA - STATUS 200`
+
+```json
+{
+  "description": "Orcamento recalculado",
+  "id": "9c986988-fc91-4055-9c9b-fba59dce92da",
+  "price": 659.9
+}
+```
+
+<h3 align = "center"> Deletar proposta </h3>
+
+
+`DELETE /e0f3ed9a-8caf-4991-b8c5-4cf74b442f52 - FORMATO DA REQUISIÇÃO`
+
+    Caso dê tudo certo, a resposta será assim:
+
+`DELETE /e0f3ed9a-8caf-4991-b8c5-4cf74b442f52 - FORMATO DA RESPOSTA - STATUS 200`
