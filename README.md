@@ -1,9 +1,9 @@
 <h1 align="center">
-  Call Up - API
+  CallUp - API
 </h1>
 
 <p align = "justify">
-  CallUp – API, está sendo desenvolvida com o propósito de facilitar e melhorar a experiência das empresas e de seus prestadores de serviços dando a eles comodidade e agilidade na hora de solucionar suas demandas e necessidades diárias. Toda empresa em algum momento vai precisar de um técnico especializado para cuidar de algum problema ou simplesmente um serviço, com este intuito estamos desenvolvendo a CallUp, uma plataforma onde a empresa pode acessar abrir um chamado e aguardar até que um das empresas de prestação de serviços faça uma proposta por aquela demanda. Imagine em um único lugar você já ter orçamentos, contações e o melhor, profissionais treinados e especializados. Em contra partida, o prestador vai ter em suas mãos as principais demandas que estão de acordo com suas especialidades.
+  A CallUp - API foi desenvolvida com o propósito de facilitar e melhorar a experiência das empresas e de seus funcionários dando a eles comodidade e agilidade na hora de solucionar suas demandas e necessidades de suporte técnico diários. Toda empresa em algum momento vai precisar de um técnico especializado para cuidar de algum problema ou simplesmente um serviço, com este intuito estamos desenvolvendo a CallUp, uma plataforma onde uma empresa pode abrir um chamado e aguardar até que um dos prestadores de serviço faça uma proposta para aquela demanda. Imagine em um único lugar você já ter orçamentos, cotações e o melhor, profissionais treinados e especializados. Em contra partida, o prestador vai ter em suas mãos as principais demandas que estão de acordo com suas especialidades.
 </p>
 
 <p align="center">
